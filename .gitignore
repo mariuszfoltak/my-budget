@@ -1,5 +1,5 @@
-.gradle
-build/
+# Ignore maven build catalog
+target/
 
-# Ignore Gradle GUI config
-gradle-app.setting
+# Ignore netbeans configuration file
+nb-configuration.xml
