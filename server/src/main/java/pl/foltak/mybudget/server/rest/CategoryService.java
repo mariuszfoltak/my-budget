@@ -1,6 +1,9 @@
 package pl.foltak.mybudget.server.rest;
 
 import java.net.URI;
+import java.util.LinkedList;
+import java.util.List;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.NotFoundException;
@@ -69,11 +72,29 @@ public class CategoryService {
         if (parentCategory == null) {
             throw new NotFoundException("Can't add category, because parent category doesn't exist");
         }
-        if(parentCategory.findCategory(category.getName())!=null) {
+        if (parentCategory.findCategory(category.getName()) != null) {
             throw new ConflictException("Can't add category, because it already exists");
         }
         parentCategory.addCategory(category);
         return Response.created(createURI(parentCategoryName, category.getName())).build();
+    }
+
+    @Path("{parentCategoryName}/{categoryName}")
+    @DELETE
+    public Response removeSubcategory(String mainCategoryName, String subcategoryName) {
+        final Category mainCategory = user.findCategory(mainCategoryName);
+        if (mainCategory == null) {
+            throw new NotFoundException("Can't delete category, because parent category doesn't exist");
+        }
+        final Category subCategory = mainCategory.findCategory(subcategoryName);
+        if (subCategory == null) {
+            throw new NotFoundException("Can't remove category, because it doesn't exist");
+        }
+        if (subCategory.hasTransactions()) {
+            throw new BadRequestException("Can't remove category, because it has transactions");
+        }
+        mainCategory.removeSubcategory(subcategoryName);
+        return Response.ok().build();
     }
 
     private static URI createURI(String parentCategoryName, String categoryName) {
@@ -84,4 +105,24 @@ public class CategoryService {
         return URI.create("category/" + category.getName());
     }
 
+    Response editSubcategory(String FOOD, String CANDY, Category category) {
+        final Category mainCategory = user.findCategory(FOOD);
+        if (mainCategory == null) {
+            throw new NotFoundException("Can't modify category, because parent category doesn't exist");
+        }
+        final Category subCategory = mainCategory.findCategory(CANDY);
+        if (subCategory == null) {
+            throw new NotFoundException("Can't modify category, because it doesn't exist");
+        }
+        if (subCategory.hasTransactions()) {
+            throw new ConflictException("Can't modify category, because category with new name already exist");
+        }
+        subCategory.setName(category.getName());
+        return Response.ok().build();
+    }
+
+    public List<Category> getAllCategories(HttpServletResponse response) {
+        response.setStatus(200);
+        return user.getCategories();
+    }
 }

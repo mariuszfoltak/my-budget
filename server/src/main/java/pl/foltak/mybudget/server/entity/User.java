@@ -1,6 +1,7 @@
 package pl.foltak.mybudget.server.entity;
 
 import java.util.List;
+import lombok.Getter;
 
 /**
  *
@@ -8,7 +9,7 @@ import java.util.List;
  */
 public class User {
 
-    public List<Category> categories;
+    @Getter public List<Category> categories;
 
     public void addCategory(Category category) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.

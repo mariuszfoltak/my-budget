@@ -1,6 +1,9 @@
 package pl.foltak.mybudget.server.rest;
 
 import java.net.URI;
+import java.util.LinkedList;
+import java.util.List;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
@@ -63,7 +66,7 @@ public class CategoryServiceTest {
     public void testAddingExistingMainCategory() {
         try {
             instance.addParentCategory(mainCategory);
-            fail("Expected exception: " + ConflictException.class.getName());
+            expectedException(ConflictException.class);
         } catch (ConflictException e) {
             verify(user, never()).addCategory(any(Category.class));
         }
@@ -91,7 +94,7 @@ public class CategoryServiceTest {
         when(mainCategory.hasSubCategories()).thenReturn(true);
         try {
             instance.removeParentCategory(FOOD);
-            fail("Expected BadRequestException");
+            expectedException(BadRequestException.class);
         } catch (BadRequestException e) {
             verify(user, never()).removeCategory(any());
         }
@@ -102,7 +105,7 @@ public class CategoryServiceTest {
         when(mainCategory.hasTransactions()).thenReturn(true);
         try {
             instance.removeParentCategory(FOOD);
-            fail("Expected BadRequestException");
+            expectedException(BadRequestException.class);
         } catch (BadRequestException e) {
             verify(user, never()).removeCategory(any());
         }
@@ -141,39 +144,143 @@ public class CategoryServiceTest {
     }
 
     @Test
-    public void testAddSecondLevelCategoryReturnLocationHeader() {
+    public void testReturnLocationHeaderWhenAddingSubcategory() {
         String fruits = "fruits";
         Response response = instance.addCategory(FOOD, new Category(fruits));
         assertEquals("Location header isn't equal to new category", createURI(FOOD, fruits), response.getLocation());
     }
 
     @Test(expected = NotFoundException.class)
-    public void testThrowNotFoundWhenMainCategoryDoesntExist() {
+    public void testThrowNotFoundWhenCreatingSubcategoryAndMainCategoryDoesntExist() {
         instance.addCategory("nonExisting", new Category("test"));
     }
 
     @Test
-    public void testThrowConflictWhenCreatedCategoryAlreadyExist() {
+    public void testThrowConflictWhenCreatingSubcategoryAlreadyExist() {
         try {
             instance.addCategory(FOOD, new Category(CANDY));
-            fail("Expected exception: " + ConflictException.class.getName());
+            expectedException(ConflictException.class);
         } catch (Exception e) {
             verify(mainCategory, never()).addCategory(any());
         }
     }
-//    TODO: When we try to modify subcategory and parent category doesn't exist, we should get 404
-//    TODO: When we try to modify non-exist subcategory, we should get 404
-//    TODO: When we try to modify subcategory to already exist, we should get 409
-//    TODO: When we try to delete subcategory and parent category doesn't exist, we should get 404
-//    TODO: When we try to delete non-exist subcategory, we should get 404
-//    TODO: When we try to delete subcategory, then we should move all transactions to another category
-//    TODO: get all categories
 
+    @Test
+    public void testUpdateEntityWhenRemovingSubcategory() {
+        instance.removeSubcategory(FOOD, CANDY);
+        verify(mainCategory).removeSubcategory(CANDY);
+    }
+
+    @Test
+    public void testReturnOkStatusWhenRemovingSubcategory() {
+        Response response = instance.removeSubcategory(FOOD, CANDY);
+        assertEquals("Status code isn't equal to 200 OK", 200, response.getStatus());
+    }
+
+    @Test(expected = NotFoundException.class)
+    public void testThrowNotFoundWhenRemovingSubcategoryAndParentCategoryDoesntExist() {
+        instance.removeSubcategory("nonExist", CANDY);
+    }
+
+    @Test
+    public void testThrowNotFoundExceptionWhenRemovingSubcategoryThatDoesntExist() {
+        try {
+            instance.removeSubcategory(FOOD, "nonExist");
+            expectedException(NotFoundException.class);
+        } catch (NotFoundException e) {
+            verify(mainCategory, never()).removeSubcategory(any());
+        }
+
+    }
+
+    @Test
+    public void testThrowBadRequestExceptionWhenRemovingSubcategoryThatHasTransactions() {
+        when(subCategory.hasTransactions()).thenReturn(Boolean.TRUE);
+        try {
+            instance.removeSubcategory(FOOD, CANDY);
+            expectedException(BadRequestException.class);
+        } catch (Exception e) {
+            verify(mainCategory, never()).removeSubcategory(any());
+        }
+    }
+
+    @Test
+    public void testReturnOkStatusWhenModifingSubcategory() {
+        Response response = instance.editSubcategory(FOOD, CANDY, new Category("newCandy"));
+        assertEquals("Status code isn't equal to 200 OK", 200, response.getStatus());
+    }
+
+    @Test
+    public void testUpdateEntityWhenModifingSubcategory() {
+        instance.editSubcategory(FOOD, CANDY, new Category("newCandy"));
+        verify(subCategory, times(1)).setName("newCandy");
+    }
+
+    @Test(expected = NotFoundException.class)
+    public void testThrowNotFoundExceptionWhenMainCategoryDoesntExist() {
+        instance.editSubcategory("nonExist", CANDY, new Category("newCandy"));
+    }
+
+    @Test(expected = NotFoundException.class)
+    public void testThrowNotFoundExceptionWhenSubCategoryDoesntExist() {
+        instance.editSubcategory(FOOD, "nonExist", new Category("newCandy"));
+    }
+
+    @Test
+    public void testThrowConflictExceptionWhenSubCategoryWithNewNameAlreadyExist() {
+        when(subCategory.hasTransactions()).thenReturn(Boolean.TRUE);
+        try {
+            instance.editSubcategory(FOOD, CANDY, subCategory);
+            expectedException(ConflictException.class);
+        } catch (ConflictException e) {
+            verify(subCategory, never()).setName(any());
+        }
+    }
+
+    @Test
+    public void testReturnOkStatusWhenGettingAllCategories() {
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        instance.getAllCategories(response);
+        verify(response).setStatus(200);
+    }
+
+    @Test
+    public void testReturnCategoriesListWhenGettingAllCategories() {
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        List<Category> categories = prepareListOfCategories();
+        when(user.getCategories()).thenReturn(categories);
+        List<Category> result = instance.getAllCategories(response);
+        assertEquals("List of categories it's not equals", categories, result);
+    }
+
+    private List<Category> prepareListOfCategories() {
+        List<Category> categories = new LinkedList<>();
+        Category mainFirst = new Category("eating");
+        mainFirst.setCategories(new LinkedList<>());
+        mainFirst.getCategories().add(new Category("fruits"));
+        mainFirst.getCategories().add(new Category("candy"));
+        Category mainSecond = new Category("driving");
+        mainSecond.setCategories(new LinkedList<>());
+        mainSecond.getCategories().add(new Category("fuel"));
+        mainSecond.getCategories().add(new Category("parts"));
+        categories.add(mainFirst);
+        categories.add(mainSecond);
+        return categories;
+    }
+
+//    TODO: get subcategories return 200 OK
+//    TODO: get subcategories from category
+//    TODO: throw not found exception when category doesnt exist
+    
     private static URI createURI(String firstLevelCategory, String secondLevelCategory) {
         return URI.create("category/" + firstLevelCategory + "/" + secondLevelCategory);
     }
 
     private static URI createURI(String firstLevelCategory) {
         return URI.create("category/" + firstLevelCategory);
+    }
+
+    private <T extends Exception> void expectedException(Class<T> exceptionClass) {
+        fail("Expected exception: " + exceptionClass.getName());
     }
 }

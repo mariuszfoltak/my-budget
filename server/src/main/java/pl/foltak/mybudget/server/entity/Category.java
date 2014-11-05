@@ -18,7 +18,7 @@ import lombok.Setter;
 public class Category {
 
     @Getter @Setter @NonNull private String name;
-    private List<Category> categories;
+    @Getter @Setter private List<Category> categories;
 
     public void addCategory(Category category) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -33,6 +33,10 @@ public class Category {
     }
 
     public boolean hasTransactions() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    public void removeSubcategory(String CANDY) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
