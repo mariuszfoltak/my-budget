@@ -7,6 +7,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -27,75 +28,87 @@ import pl.foltak.mybudget.server.rest.exception.ConflictException;
 @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 public class CategoryService {
 
+    private static final String CATEGORY_DOESNT_EXIST = "Category '%s' doesn't exist";
+    private static final String CATEGORY_ALREADY_EXIST = "Category '%s' already exists";
+    private static final String CATEGORY_HAS_TRANSACTIONS = "Category '%s' has transactions";
+    private static final String CATEGORY_HAS_SUBCATEGORIES = "Category '%s' has subcategories";
+
     User user;
 
     @PUT
-    public Response addParentCategory(Category category) {
-        if (user.findCategory(category.getName()) != null) {
-            throw new ConflictException("Can't create category, because it already exists");
-        }
+    public Response addMainCategory(Category category) {
+        checkIfMainCategoryExists(category);
         user.addCategory(category);
         return Response.created(createURI(category)).build();
     }
 
-    @Path("{categoryName}")
-    @DELETE
-    public Response removeParentCategory(@PathParam("categoryName") String categoryName) {
-        final Category category = user.findCategory(categoryName);
-        if (category == null) {
-            throw new NotFoundException("Can't delete category, because it isn't exist");
-        }
-        if (category.hasSubCategories()) {
-            throw new BadRequestException("Can't remove category, because it has subcategories");
-        }
-        if (category.hasTransactions()) {
-            throw new BadRequestException("Can't remove category, because it has transactions");
-        }
-        user.removeCategory(categoryName);
-        return Response.ok().build();
-    }
-
-    @Path("{categoryName}")
+    @Path("{mainCategory}")
     @POST
-    public Response editMainCategory(@PathParam("categoryName") String categoryName, Category category) {
-        final Category currentCategory = user.findCategory(categoryName);
-        if (currentCategory == null) {
-            throw new NotFoundException("Can't delete category, because it isn't exist");
-        }
+    public Response editMainCategory(@PathParam("mainCategory") String categoryName, Category category) {
+        Category currentCategory = findMainCategory(categoryName);
         currentCategory.setName(category.getName());
         return Response.ok().build();
     }
 
-    @Path("{parentCategoryName}/{categoryName}")
-    @PUT
-    public Response addCategory(@PathParam("parentCategoryName") String parentCategoryName, Category category) {
-        Category parentCategory = user.findCategory(parentCategoryName);
-        if (parentCategory == null) {
-            throw new NotFoundException("Can't add category, because parent category doesn't exist");
-        }
-        if (parentCategory.findCategory(category.getName()) != null) {
-            throw new ConflictException("Can't add category, because it already exists");
-        }
-        parentCategory.addCategory(category);
-        return Response.created(createURI(parentCategoryName, category.getName())).build();
+    @Path("{mainCategory}")
+    @DELETE
+    public Response removeMainCategory(@PathParam("mainCategory") String categoryName) {
+        Category category = findMainCategory(categoryName);
+        checkIfCategoryHasSubCategories(category);
+        checkIfCategoryHasTransactions(category);
+        user.removeCategory(categoryName);
+        return Response.ok().build();
     }
 
-    @Path("{parentCategoryName}/{categoryName}")
-    @DELETE
-    public Response removeSubcategory(String mainCategoryName, String subcategoryName) {
-        final Category mainCategory = user.findCategory(mainCategoryName);
-        if (mainCategory == null) {
-            throw new NotFoundException("Can't delete category, because parent category doesn't exist");
-        }
-        final Category subCategory = mainCategory.findCategory(subcategoryName);
-        if (subCategory == null) {
-            throw new NotFoundException("Can't remove category, because it doesn't exist");
-        }
-        if (subCategory.hasTransactions()) {
-            throw new BadRequestException("Can't remove category, because it has transactions");
-        }
-        mainCategory.removeSubcategory(subcategoryName);
+    @Path("{mainCategory}")
+    @PUT
+    public Response addSubCategory(@PathParam("mainCategory") String mainCategoryName, Category category) {
+        final Category mainCategory = findMainCategory(mainCategoryName);
+        checkIfSubCategoryExists(mainCategory, category);
+        mainCategory.addCategory(category);
+        return Response.created(createURI(mainCategoryName, category.getName())).build();
+    }
+
+    @Path("{mainCategory}/{subCategory}")
+    @POST
+    Response editSubCategory(@PathParam("mainCategory") String mainCategoryName, @PathParam("subCategory") String subCategoryName, Category category) {
+        final Category mainCategory = findMainCategory(mainCategoryName);
+        final Category subCategory = findSubCategory(mainCategory, subCategoryName);
+        checkIfSubCategoryExists(mainCategory, category);
+        subCategory.setName(category.getName());
         return Response.ok().build();
+    }
+
+    @Path("{mainCategory}/{subCategory}")
+    @DELETE
+    public Response removeSubCategory(@PathParam("mainCategory") String mainCategoryName, @PathParam("subCategory") String subCategoryName) {
+        Category mainCategory = findMainCategory(mainCategoryName);
+        Category subCategory = findSubCategory(mainCategory, subCategoryName);
+        checkIfCategoryHasTransactions(subCategory);
+        mainCategory.removeSubcategory(subCategoryName);
+        return Response.ok().build();
+    }
+
+    @GET
+    public List<Category> getAllCategories(HttpServletResponse response) {
+        response.setStatus(200);
+        return user.getCategories();
+    }
+
+    @Path("{mainCategory}")
+    @GET
+    public List<Category> getSubcategories(@PathParam("mainCategory") String mainCategoryName, HttpServletResponse response) {
+        response.setStatus(200);
+        Category mainCategory = findMainCategory(mainCategoryName);
+        return mainCategory.getCategories();
+    }
+
+    private Category findMainCategory(String categoryName) throws NotFoundException {
+        final Category category = user.findCategory(categoryName);
+        if (category == null) {
+            throw new NotFoundException(String.format(CATEGORY_DOESNT_EXIST, categoryName));
+        }
+        return category;
     }
 
     private static URI createURI(String parentCategoryName, String categoryName) {
@@ -106,33 +119,35 @@ public class CategoryService {
         return URI.create("category/" + category.getName());
     }
 
-    Response editSubcategory(String FOOD, String CANDY, Category category) {
-        final Category mainCategory = user.findCategory(FOOD);
-        if (mainCategory == null) {
-            throw new NotFoundException("Can't modify category, because parent category doesn't exist");
+    private void checkIfCategoryHasTransactions(Category category) throws BadRequestException {
+        if (category.hasTransactions()) {
+            throw new BadRequestException(String.format(CATEGORY_HAS_TRANSACTIONS, category.getName()));
         }
-        final Category subCategory = mainCategory.findCategory(CANDY);
+    }
+
+    private void checkIfCategoryHasSubCategories(Category category) throws BadRequestException {
+        if (category.hasSubCategories()) {
+            throw new BadRequestException(String.format(CATEGORY_HAS_SUBCATEGORIES, category.getName()));
+        }
+    }
+
+    private void checkIfMainCategoryExists(Category category) throws ConflictException {
+        if (user.findCategory(category.getName()) != null) {
+            throw new ConflictException(String.format(CATEGORY_ALREADY_EXIST, category.getName()));
+        }
+    }
+
+    private void checkIfSubCategoryExists(final Category mainCategory, Category category) throws ConflictException {
+        if (mainCategory.findCategory(category.getName()) != null) {
+            throw new ConflictException(String.format(CATEGORY_ALREADY_EXIST, category.getName()));
+        }
+    }
+
+    private Category findSubCategory(final Category mainCategory, String subCategoryName) throws NotFoundException {
+        final Category subCategory = mainCategory.findCategory(subCategoryName);
         if (subCategory == null) {
-            throw new NotFoundException("Can't modify category, because it doesn't exist");
+            throw new NotFoundException(String.format(CATEGORY_DOESNT_EXIST, subCategoryName));
         }
-        if (subCategory.hasTransactions()) {
-            throw new ConflictException("Can't modify category, because category with new name already exist");
-        }
-        subCategory.setName(category.getName());
-        return Response.ok().build();
-    }
-
-    public List<Category> getAllCategories(HttpServletResponse response) {
-        response.setStatus(200);
-        return user.getCategories();
-    }
-
-    public List<Category> getSubcategories(String FOOD, HttpServletResponse response) {
-        response.setStatus(200);
-        final Category mainCategory = user.findCategory(FOOD);
-        if (mainCategory == null) {
-            throw new NotFoundException("Category doesn't exist");
-        }
-        return mainCategory.getCategories();
+        return subCategory;
     }
 }
