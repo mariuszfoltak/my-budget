@@ -255,22 +255,48 @@ public class CategoryServiceTest {
 
     private List<Category> prepareListOfCategories() {
         List<Category> categories = new LinkedList<>();
-        Category mainFirst = new Category("eating");
-        mainFirst.setCategories(new LinkedList<>());
-        mainFirst.getCategories().add(new Category("fruits"));
-        mainFirst.getCategories().add(new Category("candy"));
-        Category mainSecond = new Category("driving");
-        mainSecond.setCategories(new LinkedList<>());
-        mainSecond.getCategories().add(new Category("fuel"));
-        mainSecond.getCategories().add(new Category("parts"));
+        Category mainFirst = prepareEatingSubcategories();
+        Category mainSecond = prepareDrivingSubcategories();
         categories.add(mainFirst);
         categories.add(mainSecond);
         return categories;
     }
 
-//    TODO: get subcategories return 200 OK
-//    TODO: get subcategories from category
-//    TODO: throw not found exception when category doesnt exist
+    private Category prepareEatingSubcategories() {
+        Category mainFirst = new Category("eating");
+        mainFirst.setCategories(new LinkedList<>());
+        mainFirst.getCategories().add(new Category("fruits"));
+        mainFirst.getCategories().add(new Category("candy"));
+        return mainFirst;
+    }
+
+    private Category prepareDrivingSubcategories() {
+        Category mainSecond = new Category("driving");
+        mainSecond.setCategories(new LinkedList<>());
+        mainSecond.getCategories().add(new Category("fuel"));
+        mainSecond.getCategories().add(new Category("parts"));
+        return mainSecond;
+    }
+
+    @Test
+    public void testReturnOkStatusWhenGettingSubcategories() {
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        instance.getSubcategories(FOOD, response);
+        verify(response).setStatus(200);
+    }
+
+    @Test
+    public void testReturnCategoriesListWhenGettingSubcategories() {
+        List<Category> categories = prepareEatingSubcategories().getCategories();
+        when(mainCategory.getCategories()).thenReturn(categories);
+        List<Category> result = instance.getSubcategories(FOOD, mock(HttpServletResponse.class));
+        assertEquals("List of categories it's not equals", categories, result);
+    }
+
+    @Test(expected = NotFoundException.class)
+    public void testThrowNotFoundExceptionWhenGettingSubcategoriesFromCategoryThatDoesntExist() {
+        instance.getSubcategories("nonExist", mock(HttpServletResponse.class));
+    }
 
     private static URI createURI(String firstLevelCategory, String secondLevelCategory) {
         return URI.create("category/" + firstLevelCategory + "/" + secondLevelCategory);

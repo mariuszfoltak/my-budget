@@ -1,6 +1,7 @@
 package pl.foltak.mybudget.server.rest;
 
 import java.net.URI;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
@@ -124,5 +125,14 @@ public class CategoryService {
     public List<Category> getAllCategories(HttpServletResponse response) {
         response.setStatus(200);
         return user.getCategories();
+    }
+
+    public List<Category> getSubcategories(String FOOD, HttpServletResponse response) {
+        response.setStatus(200);
+        final Category mainCategory = user.findCategory(FOOD);
+        if (mainCategory == null) {
+            throw new NotFoundException("Category doesn't exist");
+        }
+        return mainCategory.getCategories();
     }
 }
