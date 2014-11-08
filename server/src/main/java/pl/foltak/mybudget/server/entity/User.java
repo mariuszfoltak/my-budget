@@ -30,4 +30,8 @@ public class User {
     public Account findAccount(String wallet) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
+    public void removeAccount(Account walletAccount) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

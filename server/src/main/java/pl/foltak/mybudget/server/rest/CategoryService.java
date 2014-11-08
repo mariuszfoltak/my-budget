@@ -1,8 +1,6 @@
 package pl.foltak.mybudget.server.rest;
 
 import java.net.URI;
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.BadRequestException;
