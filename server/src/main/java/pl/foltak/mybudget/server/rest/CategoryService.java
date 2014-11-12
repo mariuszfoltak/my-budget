@@ -22,7 +22,7 @@ import pl.foltak.mybudget.server.rest.exception.ConflictException;
  *
  * @author Mariusz Foltak <mariusz@foltak.pl>
  */
-@Path("/category")
+@Path("/categories")
 @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 public class CategoryService {
 

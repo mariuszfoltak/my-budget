@@ -1,6 +1,9 @@
 package pl.foltak.mybudget.server.rest;
 
 import java.net.URI;
+import java.util.LinkedList;
+import java.util.List;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
@@ -10,7 +13,7 @@ import org.junit.Test;
 import static org.mockito.Mockito.*;
 import pl.foltak.mybudget.server.entity.Account;
 import pl.foltak.mybudget.server.entity.User;
-import static pl.foltak.mybudget.server.rest.TestUtils.expectedException;
+import static pl.foltak.mybudget.server.test.TestUtils.expectedException;
 import pl.foltak.mybudget.server.rest.exception.ConflictException;
 
 /**
@@ -59,7 +62,7 @@ public class AccountServiceTest {
     }
 
     /**
-     * When create account was called, service should add account to user
+     * When create account is called, service should add account to user
      */
     @Test
     public void isServiceAddAccountToUserWhenAccountIsCreated() {
@@ -68,7 +71,7 @@ public class AccountServiceTest {
     }
 
     /**
-     * When create account was called and the account already exist, service should return 409 Conflict and doesn't add account.
+     * When create account is called and the account already exist, service should return 409 Conflict and doesn't add account.
      */
     @Test
     public void isConflictExceptionThrownWhenTryToCreateAccountThatAlreadyExists() {
@@ -81,7 +84,7 @@ public class AccountServiceTest {
     }
 
     /**
-     * When modify account was called, service should return 200 OK.
+     * When modify account is called, service should return 200 OK.
      */
     @Test
     public void isOkStatusReturnedWhenAccountIsModified() {
@@ -90,7 +93,7 @@ public class AccountServiceTest {
     }
 
     /**
-     * When modify account was called, service should update account entity.
+     * When modify account is called, service should update account entity.
      */
     @Test
     public void isEntityUpdatedWhenAccountIsModified() {
@@ -99,7 +102,7 @@ public class AccountServiceTest {
     }
 
     /**
-     * When modify account was called and the account doesn't exist, service should return 404 Not Found.
+     * When modify account is called and the account doesn't exist, service should return 404 Not Found.
      */
     @Test(expected = NotFoundException.class)
     public void isNotFoundExceptionThrownWhenTryToModifyAccountThatDoesntExist() {
@@ -120,7 +123,7 @@ public class AccountServiceTest {
     }
 
     /**
-     * When remove account was called, service should return 200 OK.
+     * When remove account is called, service should return 200 OK.
      */
     @Test
     public void isOkStatusReturnedWhenAccountIsRemoved() {
@@ -129,7 +132,7 @@ public class AccountServiceTest {
     }
 
     /**
-     * When remove account was called, service should remove entity.
+     * When remove account is called, service should remove entity.
      */
     @Test
     public void isEntityRemovedWhenAccountIsRemoved() {
@@ -138,7 +141,7 @@ public class AccountServiceTest {
     }
 
     /**
-     * When remove account is called and account doesnt exist, service should return 404 Not Found.
+     * When remove account is called and account doesn't exist, service should return 404 Not Found.
      */
     @Test(expected = NotFoundException.class)
     public void isNotFoundExceptionThrownWhenTryToRemoveAccountThatDoesntExist() {
@@ -146,7 +149,7 @@ public class AccountServiceTest {
     }
 
     /**
-     * When remove account was called and the account has transactinos,
+     * When remove account is called and the account has transactions,
      * service should return 400 Bad Request.
      */
     @Test
@@ -158,5 +161,28 @@ public class AccountServiceTest {
         } catch (Exception e) {
             verify(user, never()).removeAccount(any());
         }
+    }
+    
+    /**
+     * When get accounts is called, service should return 200 OK.
+     */
+    @Test
+    public void isOkStatusReturnedWhenGetAccountsIsCalled() {
+        final HttpServletResponse httpServletResponse = mock(HttpServletResponse.class);
+        instance.getAccounts(httpServletResponse);
+        verify(httpServletResponse).setStatus(200);
+    }
+    
+    /**
+     * When get accounts is called, service should return list of accounts.
+     */
+    @Test
+    public void doesServiceReturnListOfAccountsWhenGetAccountsIsCalled() {
+        List<Account> accounts = new LinkedList<>();
+        accounts.add(bankAccount);
+        accounts.add(walletAccount);
+        when(user.getAccounts()).thenReturn(accounts);
+        List<Account> result = instance.getAccounts(mock(HttpServletResponse.class));
+        assertEquals("Incorrect account list", accounts, result);
     }
 }

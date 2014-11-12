@@ -1,7 +1,6 @@
 package pl.foltak.mybudget.server.rest;
 
 import java.net.URI;
-import java.util.LinkedList;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.BadRequestException;
@@ -13,7 +12,7 @@ import org.junit.Test;
 import static org.mockito.Mockito.*;
 import pl.foltak.mybudget.server.entity.Category;
 import pl.foltak.mybudget.server.entity.User;
-import static pl.foltak.mybudget.server.rest.TestUtils.expectedException;
+import static pl.foltak.mybudget.server.test.TestUtils.expectedException;
 import pl.foltak.mybudget.server.rest.exception.ConflictException;
 
 /**
@@ -24,11 +23,13 @@ public class CategoryServiceTest {
 
     private static final String FOOD = "food";
     private static final String CANDY = "candy";
+    private static final String HOUSE = "house";
 
     private CategoryService instance;
     private User user;
     private Category mainCategory;
     private Category subCategory;
+    private Category houseCategory;
 
     @Before
     public void setUp() {
@@ -36,31 +37,38 @@ public class CategoryServiceTest {
         instance.user = user = mock(User.class);
         mainCategory = mock(Category.class);
         subCategory = mock(Category.class);
+        houseCategory = mock(Category.class);
 
         when(user.findCategory(FOOD)).thenReturn(mainCategory);
         when(mainCategory.getName()).thenReturn(FOOD);
         when(mainCategory.findCategory(CANDY)).thenReturn(subCategory);
+        when(subCategory.getName()).thenReturn(CANDY);
+        when(houseCategory.getName()).thenReturn(HOUSE);
     }
 
     @Test
     public void testAddingMainCategoryStatusCodeIsCreated() {
-        Response response = instance.addMainCategory(new Category("car"));
+        Response response = instance.addMainCategory(mock(Category.class));
         assertEquals("Status code isn't equal to 201,", 201, response.getStatus());
     }
 
     @Test
     public void testAddingMainCategoryReturnLocationHeader() {
         String car = "car";
-        Response response = instance.addMainCategory(new Category(car));
+        final Category category = mock(Category.class);
+        when(category.getName()).thenReturn(car);
+        Response response = instance.addMainCategory(category);
         assertEquals("Location header isn't equal to new category,", createURI(car), response.getLocation());
     }
 
     @Test
     public void testAddingMainCategoryAddCategoryToUser() {
         final String car = "car";
-        instance.addMainCategory(new Category(car));
+        final Category category = mock(Category.class);
+        when(category.getName()).thenReturn(car);
+        instance.addMainCategory(category);
 
-        verify(user).addCategory(new Category(car));
+        verify(user).addCategory(category);
     }
 
     @Test
@@ -114,52 +122,48 @@ public class CategoryServiceTest {
 
     @Test
     public void testUpdatingEntityWhenModifyMainCategory() {
-        final String newFood = "newFood";
-        instance.editMainCategory(FOOD, new Category(newFood));
-        verify(mainCategory, times(1)).setName(newFood);
+        instance.editMainCategory(FOOD, houseCategory);
+        verify(mainCategory, times(1)).setName(HOUSE);
     }
 
     @Test
     public void testReturnOkStatusWhenModifyMainCategory() {
-        Response response = instance.editMainCategory(FOOD, new Category("newFood"));
+        Response response = instance.editMainCategory(FOOD, houseCategory);
         assertEquals("Status code isn't equal to 200 OK", 200, response.getStatus());
     }
 
     @Test(expected = NotFoundException.class)
     public void testReturnNotFoundWhenModifingNonexistingMainCategory() {
-        instance.editMainCategory("nonExisting", new Category("newCategory"));
+        instance.editMainCategory("nonExisting", houseCategory);
     }
 
     @Test
     public void testAddSecondLevelCategoryAddCategoryToParentCategory() {
-        final String categoryName = "fruits";
-
-        instance.addSubCategory(FOOD, new Category(categoryName));
-        verify(mainCategory).addCategory(new Category(categoryName));
+        instance.addSubCategory(FOOD, houseCategory);
+        verify(mainCategory).addCategory(houseCategory);
     }
 
     @Test
     public void testAddSecondLevelCategoryReturnCreatedStatusCode() {
-        Response response = instance.addSubCategory(FOOD, new Category("fruits"));
+        Response response = instance.addSubCategory(FOOD, houseCategory);
         assertEquals("Status code isn't equal to 201", 201, response.getStatus());
     }
 
     @Test
     public void testReturnLocationHeaderWhenAddingSubcategory() {
-        String fruits = "fruits";
-        Response response = instance.addSubCategory(FOOD, new Category(fruits));
-        assertEquals("Location header isn't equal to new category", createURI(FOOD, fruits), response.getLocation());
+        Response response = instance.addSubCategory(FOOD, houseCategory);
+        assertEquals("Location header isn't equal to new category", createURI(FOOD, HOUSE), response.getLocation());
     }
 
     @Test(expected = NotFoundException.class)
     public void testThrowNotFoundWhenCreatingSubcategoryAndMainCategoryDoesntExist() {
-        instance.addSubCategory("nonExisting", new Category("test"));
+        instance.addSubCategory("nonExisting", houseCategory);
     }
 
     @Test
     public void testThrowConflictWhenCreatingSubcategoryAlreadyExist() {
         try {
-            instance.addSubCategory(FOOD, new Category(CANDY));
+            instance.addSubCategory(FOOD, subCategory);
             expectedException(ConflictException.class);
         } catch (Exception e) {
             verify(mainCategory, never()).addCategory(any());
@@ -207,24 +211,24 @@ public class CategoryServiceTest {
 
     @Test
     public void testReturnOkStatusWhenModifingSubcategory() {
-        Response response = instance.editSubCategory(FOOD, CANDY, new Category("newCandy"));
+        Response response = instance.editSubCategory(FOOD, CANDY, houseCategory);
         assertEquals("Status code isn't equal to 200 OK", 200, response.getStatus());
     }
 
     @Test
     public void testUpdateEntityWhenModifingSubcategory() {
-        instance.editSubCategory(FOOD, CANDY, new Category("newCandy"));
-        verify(subCategory, times(1)).setName("newCandy");
+        instance.editSubCategory(FOOD, CANDY, houseCategory);
+        verify(subCategory, times(1)).setName(HOUSE);
     }
 
     @Test(expected = NotFoundException.class)
     public void testThrowNotFoundExceptionWhenMainCategoryDoesntExist() {
-        instance.editSubCategory("nonExist", CANDY, new Category("newCandy"));
+        instance.editSubCategory("nonExist", CANDY, houseCategory);
     }
 
     @Test(expected = NotFoundException.class)
     public void testThrowNotFoundExceptionWhenSubCategoryDoesntExist() {
-        instance.editSubCategory(FOOD, "nonExist", new Category("newCandy"));
+        instance.editSubCategory(FOOD, "nonExist", houseCategory);
     }
 
     @Test
@@ -248,36 +252,10 @@ public class CategoryServiceTest {
 
     @Test
     public void testReturnCategoriesListWhenGettingAllCategories() {
-        HttpServletResponse response = mock(HttpServletResponse.class);
-        List<Category> categories = prepareListOfCategories();
+        List<Category> categories = mock(List.class);
         when(user.getCategories()).thenReturn(categories);
-        List<Category> result = instance.getAllCategories(response);
+        List<Category> result = instance.getAllCategories(mock(HttpServletResponse.class));
         assertEquals("List of categories it's not equals", categories, result);
-    }
-
-    private List<Category> prepareListOfCategories() {
-        List<Category> categories = new LinkedList<>();
-        Category mainFirst = prepareEatingSubcategories();
-        Category mainSecond = prepareDrivingSubcategories();
-        categories.add(mainFirst);
-        categories.add(mainSecond);
-        return categories;
-    }
-
-    private Category prepareEatingSubcategories() {
-        Category mainFirst = new Category("eating");
-        mainFirst.setCategories(new LinkedList<>());
-        mainFirst.getCategories().add(new Category("fruits"));
-        mainFirst.getCategories().add(new Category("candy"));
-        return mainFirst;
-    }
-
-    private Category prepareDrivingSubcategories() {
-        Category mainSecond = new Category("driving");
-        mainSecond.setCategories(new LinkedList<>());
-        mainSecond.getCategories().add(new Category("fuel"));
-        mainSecond.getCategories().add(new Category("parts"));
-        return mainSecond;
     }
 
     @Test
@@ -289,7 +267,7 @@ public class CategoryServiceTest {
 
     @Test
     public void testReturnCategoriesListWhenGettingSubcategories() {
-        List<Category> categories = prepareEatingSubcategories().getCategories();
+        List<Category> categories = mock(List.class);
         when(mainCategory.getCategories()).thenReturn(categories);
         List<Category> result = instance.getSubcategories(FOOD, mock(HttpServletResponse.class));
         assertEquals("List of categories it's not equals", categories, result);

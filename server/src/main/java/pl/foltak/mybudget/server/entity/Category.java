@@ -25,7 +25,7 @@ public class Category {
     }
 
     public Category findCategory(String categoryName) {
-        return categories.stream().filter(a -> a.getName().equals(categoryName)).findAny().get();
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     public boolean hasSubCategories() {
@@ -37,6 +37,10 @@ public class Category {
     }
 
     public void removeSubcategory(String CANDY) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    public void addTransaction(Transaction transaction) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

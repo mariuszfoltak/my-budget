@@ -16,7 +16,7 @@ public class User {
     }
 
     public Category findCategory(String categoryName) {
-        return categories.stream().filter(a -> a.getName().equals(categoryName)).findAny().get();
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     public void removeCategory(String categoryName) {
@@ -32,6 +32,14 @@ public class User {
     }
 
     public void removeAccount(Account walletAccount) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    public List<Account> getAccounts() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    public List<Tag> getTags() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

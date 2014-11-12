@@ -1,8 +1,11 @@
 package pl.foltak.mybudget.server.rest;
 
 import java.net.URI;
+import java.util.List;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -18,7 +21,7 @@ import pl.foltak.mybudget.server.rest.exception.ConflictException;
  *
  * @author Mariusz Foltak <mariusz@foltak.pl>
  */
-@Path("/category")
+@Path("/accounts")
 @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 public class AccountService {
 
@@ -48,6 +51,12 @@ public class AccountService {
         throwBadRequestExceptionIfAccountHasTransactions(account);
         user.removeAccount(account);
         return Response.ok().build();
+    }
+
+    @GET
+    List<Account> getAccounts(HttpServletResponse httpServletResponse) {
+        httpServletResponse.setStatus(200);
+        return user.getAccounts();
     }
 
     private void throwBadRequestExceptionIfAccountHasTransactions(Account account) throws BadRequestException {
