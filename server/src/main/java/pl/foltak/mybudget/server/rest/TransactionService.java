@@ -56,21 +56,20 @@ public class TransactionService extends AbstractService {
 
     Response removeTransaction(String accountName, long transactionId) {
         final Account account = findAccount(accountName);
-        final Transaction transaction = account.findTransaction(transactionId);
-        if (transaction == null) {
-            throw new NotFoundException(String.format("Transaction with id=%s doesn't exist",
+        final Transaction transaction = account.findTransaction(transactionId).orElseThrow(() -> {
+            return new NotFoundException(String.format("Transaction with id=%s doesn't exist",
                     transactionId));
-        }
+        });
         account.removeTransaction(transaction);
         return Response.ok().build();
     }
 
     Response modifyTransaction(String WALLET, TransactionDTO transactionDTO) {
-        Transaction transaction = findAccount(WALLET).findTransaction(transactionDTO.getId());
-        if (transaction == null) {
-            throw new NotFoundException(String.format("Transaction with id=%s doesn't exist",
+        final Account account = findAccount(WALLET);
+        Transaction transaction = account.findTransaction(transactionDTO.getId()).orElseThrow(()->{
+            return new NotFoundException(String.format("Transaction with id=%s doesn't exist",
                     transactionDTO.getId()));
-        }
+        });
         transaction = updateTransaction(transactionDTO, transaction);
         Category subCategory = getTargetCategory(transactionDTO);
         subCategory.addTransaction(transaction);

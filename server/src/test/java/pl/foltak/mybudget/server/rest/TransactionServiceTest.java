@@ -2,7 +2,6 @@ package pl.foltak.mybudget.server.rest;
 
 import java.net.URI;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import javax.ws.rs.NotFoundException;
@@ -10,6 +9,7 @@ import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import static org.mockito.AdditionalMatchers.not;
 import static org.mockito.Mockito.*;
 import pl.foltak.mybudget.server.dto.TransactionDTO;
 import pl.foltak.mybudget.server.entity.Account;
@@ -68,7 +68,8 @@ public class TransactionServiceTest {
         when(user.findAccount(NONEXISTENT)).thenReturn(Optional.ofNullable(null));
         when(user.findCategory(FOOD)).thenReturn(Optional.of(mainCategory));
         when(user.findCategory(NONEXISTENT)).thenReturn(Optional.ofNullable(null));
-        when(account.findTransaction(ID_47)).thenReturn(transaction);
+        when(account.findTransaction(ID_47)).thenReturn(Optional.of(transaction));
+        when(account.findTransaction(not(eq(ID_47)))).thenReturn(Optional.ofNullable(null));
         when(mainCategory.findCategory(CANDY)).thenReturn(subCategory);
         when(transactionDTO.getId()).thenReturn(ID_47);
         when(transactionDTO.getCategoryPath()).thenReturn(FOOD + "/" + CANDY);
