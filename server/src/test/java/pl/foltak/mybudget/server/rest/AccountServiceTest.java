@@ -3,6 +3,7 @@ package pl.foltak.mybudget.server.rest;
 import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
@@ -32,14 +33,15 @@ public class AccountServiceTest {
 
     @Before
     public void setUp() {
-        instance = new AccountService();
-        instance.user = user = mock(User.class);
-
+        instance = spy(new AccountService());
+        user = mock(User.class);
         walletAccount = mock(Account.class);
-        when(walletAccount.getName()).thenReturn(WALLET);
-        when(user.findAccount(WALLET)).thenReturn(walletAccount);
-
         bankAccount = mock(Account.class);
+
+        doReturn(user).when(instance).getUser();
+        when(walletAccount.getName()).thenReturn(WALLET);
+        when(user.findAccount(WALLET)).thenReturn(Optional.of(walletAccount));
+        when(user.findAccount(NONEXISTENT)).thenReturn(Optional.ofNullable(null));
         when(bankAccount.getName()).thenReturn(BANK);
     }
 
@@ -106,7 +108,7 @@ public class AccountServiceTest {
      */
     @Test(expected = NotFoundException.class)
     public void isNotFoundExceptionThrownWhenTryToModifyAccountThatDoesntExist() {
-        instance.modifyAccount(BANK, walletAccount);
+        instance.modifyAccount(NONEXISTENT, walletAccount);
     }
 
     /**
@@ -145,8 +147,9 @@ public class AccountServiceTest {
      */
     @Test(expected = NotFoundException.class)
     public void isNotFoundExceptionThrownWhenTryToRemoveAccountThatDoesntExist() {
-        instance.removeAccount(BANK);
+        instance.removeAccount(NONEXISTENT);
     }
+    private static final String NONEXISTENT = "nonexistent";
 
     /**
      * When remove account is called and the account has transactions,

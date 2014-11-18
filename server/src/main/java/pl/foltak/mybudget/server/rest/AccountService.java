@@ -14,7 +14,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import pl.foltak.mybudget.server.entity.Account;
-import pl.foltak.mybudget.server.entity.User;
 import pl.foltak.mybudget.server.rest.exception.ConflictException;
 
 /**
@@ -23,15 +22,14 @@ import pl.foltak.mybudget.server.rest.exception.ConflictException;
  */
 @Path("/accounts")
 @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-public class AccountService {
+public class AccountService extends AbstractService {
 
-    User user;
 
     @PUT
     @Path("/")
     public Response createAccount(Account account) {
         throwConflictExceptionIfAccountAlreadyExists(account);
-        user.addAccount(account);
+        getUser().addAccount(account);
         return Response.created(URI.create("account/" + account.getName())).build();
     }
 
@@ -49,14 +47,14 @@ public class AccountService {
     Response removeAccount(String WALLET) {
         Account account = findAccount(WALLET);
         throwBadRequestExceptionIfAccountHasTransactions(account);
-        user.removeAccount(account);
+        getUser().removeAccount(account);
         return Response.ok().build();
     }
 
     @GET
     List<Account> getAccounts(HttpServletResponse httpServletResponse) {
         httpServletResponse.setStatus(200);
-        return user.getAccounts();
+        return getUser().getAccounts();
     }
 
     private void throwBadRequestExceptionIfAccountHasTransactions(Account account) throws BadRequestException {
@@ -66,16 +64,14 @@ public class AccountService {
     }
 
     private void throwConflictExceptionIfAccountAlreadyExists(Account account) throws ConflictException {
-        if (user.findAccount(account.getName()) != null) {
+        if (getUser().findAccount(account.getName()) != null) {
             throw new ConflictException(String.format("Account '%s' already exists", account.getName()));
         }
     }
 
     private Account findAccount(String wallet) throws NotFoundException {
-        final Account currentAccount = user.findAccount(wallet);
-        if (currentAccount == null) {
-            throw new NotFoundException(String.format("Account '%s' doesn't exist", wallet));
-        }
-        return currentAccount;
+        return getUser().findAccount(wallet).orElseThrow(() -> {
+            return new NotFoundException(String.format("Account '%s' doesn't exist", wallet));
+        });
     }
 }

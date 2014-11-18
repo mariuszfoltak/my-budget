@@ -1,8 +1,10 @@
 package pl.foltak.mybudget.server.rest;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
 import org.junit.Before;
@@ -23,83 +25,102 @@ import static pl.foltak.mybudget.server.test.TestUtils.expectedException;
  */
 public class TransactionServiceTest {
 
+    private static final long ID_47 = 47L;
     private static final String WALLET = "wallet";
     private static final String CANDY = "candy";
     private static final String FOOD = "food";
+    private static final String NONEXISTENT = "nonexistent";
+    private static final String FIRST_TAG = "firstTag";
+    private static final String SECOND_TAG = "secondTag";
 
-    private TransactionService instance;
-    private TransactionDTO transactionDTO;
-    private Account account;
     private User user;
+    private Account account;
     private Category subCategory;
     private Category mainCategory;
+    private TransactionService instance;
+    private TransactionDTO transactionDTO;
+
+    private Tag firstTag;
+    private Tag secondTag;
+    private List<String> tags;
+    private Transaction transaction;
 
     @Before
     public void setUp() {
-        instance = spy(new TransactionService());
-        instance.user = user = mock(User.class);
+        user = mock(User.class);
+        tags = Arrays.asList(new String[]{FIRST_TAG, SECOND_TAG});
         account = mock(Account.class);
-        transactionDTO = mock(TransactionDTO.class);
-        mainCategory = mock(Category.class);
+        instance = spy(new TransactionService());
+        firstTag = mock(Tag.class);
+        secondTag = mock(Tag.class);
         subCategory = mock(Category.class);
         transaction = mock(Transaction.class);
+        mainCategory = mock(Category.class);
+        transactionDTO = mock(TransactionDTO.class);
 
+        doReturn(user).when(instance).getUser();
+        doReturn(firstTag).when(instance).findOrCreateTag(FIRST_TAG);
+        doReturn(secondTag).when(instance).findOrCreateTag(SECOND_TAG);
         doReturn(transaction).when(instance).convert(transactionDTO);
-        when(user.findAccount(WALLET)).thenReturn(account);
-        when(user.findCategory(FOOD)).thenReturn(mainCategory);
+        doReturn(transaction).when(instance).updateTransaction(transactionDTO, transaction);
+        
+        when(user.findAccount(WALLET)).thenReturn(Optional.of(account));
+        when(user.findAccount(NONEXISTENT)).thenReturn(Optional.ofNullable(null));
+        when(user.findCategory(FOOD)).thenReturn(Optional.of(mainCategory));
+        when(user.findCategory(NONEXISTENT)).thenReturn(Optional.ofNullable(null));
+        when(account.findTransaction(ID_47)).thenReturn(transaction);
         when(mainCategory.findCategory(CANDY)).thenReturn(subCategory);
+        when(transactionDTO.getId()).thenReturn(ID_47);
+        when(transactionDTO.getCategoryPath()).thenReturn(FOOD + "/" + CANDY);
+        when(transactionDTO.getTags()).thenReturn(tags);
     }
-    private Transaction transaction;
 
     /**
-     * When create transaction is called, then service should return 201
-     * Created. status.
+     * When create transaction is called, then service should return 201 Created. status.
      */
     @Test
     public void isCreatedStatusReturnedWhenCreateTransactionIsCalled() {
-        Response response = instance.createTransaction(WALLET, FOOD, CANDY, transactionDTO);
+        Response response = instance.createTransaction(WALLET, transactionDTO);
         assertEquals("Incorrect status code", 201, response.getStatus());
     }
 
     /**
-     * When create transaction is called, then service should return location
-     * header.
+     * When create transaction is called, then service should return location header.
      */
     @Test
     public void isLocationHeaderReturnedWhenCreateTransactionIsCalled() {
-        when(transaction.getId()).thenReturn(47L);
-        Response response = instance.createTransaction(WALLET, FOOD, CANDY, transactionDTO);
-        assertEquals("Incorrect location header", URI.create("transactions/wallet/47"), response.getLocation());
+        when(transaction.getId()).thenReturn(ID_47);
+        Response response = instance.createTransaction(WALLET, transactionDTO);
+        assertEquals("Incorrect location header", URI.create("transactions/wallet/47"),
+                response.getLocation());
     }
 
     /**
-     * When create transaction is called, then service should add entity to
-     * account.
+     * When create transaction is called, then service should add entity to account.
      */
     @Test
     public void isEntityAddedToAccountWhenCreateTransactionIsCalled() {
-        instance.createTransaction(WALLET, FOOD, CANDY, transactionDTO);
+        instance.createTransaction(WALLET, transactionDTO);
         verify(account).addTransaction(transaction);
     }
 
     /**
-     * When create transaction is called, then service should add entity to
-     * category.
+     * When create transaction is called, then service should add entity to category.
      */
     @Test
     public void isEntityAddedToCategoryWhenCreateTransactionIsCalled() {
-        instance.createTransaction(WALLET, FOOD, CANDY, transactionDTO);
+        instance.createTransaction(WALLET, transactionDTO);
         verify(subCategory).addTransaction(transaction);
     }
 
     /**
-     * When create transaction is called but account doesn't exist, then service
-     * should return 404 Not Found status.
+     * When create transaction is called but account doesn't exist, then service should return 404
+     * Not Found status.
      */
     @Test
     public void isNotFoundExceptionThrownWhenCreateTransactionIsCalledAndAccountDoesntExist() {
         try {
-            instance.createTransaction("nonexistent", FOOD, CANDY, transactionDTO);
+            instance.createTransaction(NONEXISTENT, transactionDTO);
             expectedException(NotFoundException.class);
         } catch (NotFoundException e) {
             verify(subCategory, never()).addTransaction(any());
@@ -107,13 +128,14 @@ public class TransactionServiceTest {
     }
 
     /**
-     * When create transaction is called but main category doesn't exist, then
-     * service should return 404 Not Found status.
+     * When create transaction is called but main category doesn't exist, then service should return
+     * 404 Not Found status.
      */
     @Test
     public void isNotFoundExceptionThrownWhenCreateTransactionIsCalledButMainCategoryDoesntExist() {
         try {
-            instance.createTransaction(WALLET, "nonexistent", CANDY, transactionDTO);
+            when(transactionDTO.getCategoryPath()).thenReturn(NONEXISTENT + "/" + CANDY);
+            instance.createTransaction(WALLET, transactionDTO);
             expectedException(NotFoundException.class);
         } catch (NotFoundException e) {
             verify(account, never()).addTransaction(any());
@@ -121,13 +143,14 @@ public class TransactionServiceTest {
     }
 
     /**
-     * When create transaction is called but sub category doesn't exist, then
-     * service should return 404 Not Found status.
+     * When create transaction is called but sub category doesn't exist, then service should return
+     * 404 Not Found status.
      */
     @Test
     public void isNotFoundExceptionThrownWhenCreateTransactionIsCalledButSubCategoryDoesntExist() {
         try {
-            instance.createTransaction(WALLET, FOOD, "nonexistent", transactionDTO);
+            when(transactionDTO.getCategoryPath()).thenReturn(FOOD + "/" + NONEXISTENT);
+            instance.createTransaction(WALLET, transactionDTO);
             expectedException(NotFoundException.class);
         } catch (NotFoundException e) {
             verify(account, never()).addTransaction(any());
@@ -135,42 +158,142 @@ public class TransactionServiceTest {
     }
 
     /**
-     * When create transaction is called, then service should find tags in user
-     * and add them to the transaction that is created.
+     * When create transaction is called, then service should find tags in user and add them to the
+     * transaction that is created.
      */
     @Test
     public void areTagsAddedToTransactionWhenCreateTransactionIsCalled() {
-        final String firstTagName = "firstTag";
-        final String secondTagName = "secondTag";
-        final Tag firstTag = mock(Tag.class);
-        final Tag secondTag = mock(Tag.class);
-        final List<String> tags = new LinkedList<>();
-
-        tags.add(firstTagName);
-        tags.add(secondTagName);
-
-        when(transactionDTO.getTags()).thenReturn(tags);
-        doReturn(firstTag).when(instance).findOrCreateTag(firstTagName);
-        doReturn(secondTag).when(instance).findOrCreateTag(secondTagName);
-        instance.createTransaction(WALLET, FOOD, CANDY, transactionDTO);
+        instance.createTransaction(WALLET, transactionDTO);
 
         verify(transaction).addTag(firstTag);
         verify(transaction).addTag(secondTag);
     }
 
-//    TODO: When modify transaction is called, then service should return 200 OK
-//    TODO: When modify transaction is called, then service should modify entity
-//    TODO: When modify transaction is called, then service should create tags
-//    TODO: When modify transaction is called, then service should use existing tags
-//    TODO: When modify transaction is called, then service should change category
-//    TODO: When modify transaction is called and transaction doesn't exist, then service should return 404 Not Found
-//    TODO: When modify transaction is called and main category doesn't exist, then service should return 404 Not Found
-//    TODO: When modify transaction is called and sub category doesn't exist, then service should return 404 Not Found
-//    TODO: When modify transaction is called and account doesn't exist, then service should return 404 Not Found
-//    TODO: When remove transaction is called, then service should return 200 OK
-//    TODO: When remove transaction is called, then service should remove entity from account
-//    TODO: When remove transaction is called, then service should remove entity from category
-//    TODO: When remove transaction is called and transaction doesn't exist, service should return 404 Not Found
-//    TODO: When remove transaction is called and account doesn't exist, service should return 404 Not Found
+    /**
+     * When transaction is modified, then service should return 200 OK status.
+     */
+    @Test
+    public void isOKStatusReturnedWhenModifyTransactionIsCalled() {
+        Response response = instance.modifyTransaction(WALLET, transactionDTO);
+        assertEquals(WALLET, 200, response.getStatus());
+    }
+
+    /**
+     * When modify transaction is called, then service should update entity.
+     */
+    @Test
+    public void isUpdateTransactionMethodCalledwhenModifyTransaction() {
+        instance.modifyTransaction(WALLET, transactionDTO);
+        verify(instance).updateTransaction(transactionDTO, transaction);
+    }
+
+    /**
+     * When modify transaction is called but the account doesn't exist, then service should return
+     * 404 Not Found status.
+     */
+    @Test(expected = NotFoundException.class)
+    public void isNotFoundExceptionThrownWhenModifyTransactionIsCalledButAccountDoesntExist() {
+        instance.modifyTransaction(NONEXISTENT, transactionDTO);
+    }
+
+    /**
+     * When modify transaction is called but the transaction doesn't exist, then service should
+     * return 404 Not Found status.
+     */
+    @Test(expected = NotFoundException.class)
+    public void isNotFoundExceptionThrownWhenModifyTransactionIsCalledButTransactionDoesntExist() {
+        instance.modifyTransaction(WALLET, mock(TransactionDTO.class));
+    }
+
+    /**
+     * When transaction is modified, then transaction should be added to the requested transaction.
+     */
+    @Test
+    public void isTransactionAddedToCategoryWhenModifyTransactionIsCalled() {
+        instance.modifyTransaction(WALLET, transactionDTO);
+        verify(subCategory).addTransaction(transaction);
+    }
+
+    /**
+     * When modify transaction is called but the requested main category doesn't exist, then service
+     * should return 404 Not Found status.
+     */
+    @Test(expected = NotFoundException.class)
+    public void isNotFoundExceptionThrownWhenModifyTransactionIsCalledButRequestedMainCategoryDoesntExists() {
+        when(transactionDTO.getCategoryPath()).thenReturn("nonexistent/" + CANDY);
+        instance.modifyTransaction(WALLET, transactionDTO);
+    }
+
+    /**
+     * When modify transaction is called but the requested sub category doesn't exist, then service
+     * should return 404 Not Found status.
+     */
+    @Test(expected = NotFoundException.class)
+    public void isNotFoundExceptionThrownWhenModifyTransactionIsCalledButRequestedSubCategoryDoesntExists() {
+        when(transactionDTO.getCategoryPath()).thenReturn(FOOD + "/nonexistent");
+        instance.modifyTransaction(WALLET, transactionDTO);
+    }
+
+    /**
+     * When a transaction is modified, then all old tags should be removed from the transaction.
+     */
+    @Test
+    public void areAllOldTagsRemovedFromTransactionWhenItIsModified() {
+        when(transaction.getTags()).thenReturn(mock(List.class));
+        instance.modifyTransaction(WALLET, transactionDTO);
+        verify(transaction.getTags()).clear();
+    }
+
+/**
+     * When a transaction is modified, then all new tags should be added to the transaction.
+     */
+    @Test
+    public void areAllNewTagsAddedToTransactionWhenItIsModified() {
+        when(transaction.getTags()).thenReturn(mock(List.class));
+        instance.modifyTransaction(WALLET, transactionDTO);
+
+        verify(transaction).addTag(firstTag);
+        verify(transaction).addTag(secondTag);
+    }
+
+//    TODO: Validate transactionDTO (hasCategoryPath, hasDescription, etc)
+
+    /**
+     * When transaction is removed, then service should return 200 OK status.
+     */
+    @Test
+    public void isOkStatusReturnedWhenRemoveTrasactionIsCalled() {
+        Response response = instance.removeTransaction(WALLET, ID_47);
+        assertEquals("Incorrect status code", 200, response.getStatus());
+    }
+
+    /**
+     * When transaction is removed, then service should remove entity from an account.
+     */
+    @Test
+    public void isEntityRemovedFromAccountWhenRemoveTransactionIsCalled() {
+        instance.removeTransaction(WALLET, ID_47);
+        verify(account).removeTransaction(transaction);
+    }
+
+    /**
+     * When remove transaction is called but the account doesn't exist, service should return 404
+     * Not Found.
+     */
+    @Test(expected = NotFoundException.class)
+    public void isNotFoundExceptionThrownWhenRemoveTransactionIsCalledButAccountDoesntExist() {
+        instance.removeTransaction(NONEXISTENT, ID_47);
+    }
+
+    /**
+     * When remove transaction is called but the transaction doesn't exist, service should return
+     * 404 Not Found.
+     */
+    @Test(expected = NotFoundException.class)
+    public void isNotFoundExceptionThrownWhenRemoveTransactionIsCalledButTransactionDoesntExist() {
+        instance.removeTransaction(WALLET, 13L);
+    }
+    
 //    TODO: Get transactions by filters
+    
 }

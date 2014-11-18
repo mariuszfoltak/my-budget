@@ -1,7 +1,8 @@
 package pl.foltak.mybudget.server.entity;
 
+import java.util.LinkedList;
 import java.util.List;
-import lombok.Getter;
+import java.util.Optional;
 
 /**
  *
@@ -9,45 +10,51 @@ import lombok.Getter;
  */
 public class User {
 
-    @Getter public List<Category> categories;
+    List<Category> categories;
+    List<Account> accounts;
+    List<Tag> tags;
 
     public void addCategory(Category category) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        categories.add(category);
     }
 
-    public Category findCategory(String categoryName) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void removeCategory(Category category) {
+        categories.remove(category);
     }
 
-    public void removeCategory(String categoryName) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public Optional<Category> findCategory(String categoryName) {
+        return categories.stream().filter(e -> e.getName().equals(categoryName)).findFirst();
+    }
+
+    public List<Category> getCategories() {
+        return new LinkedList<>(categories);
     }
 
     public void addAccount(Account account) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        accounts.add(account);
     }
 
-    public Account findAccount(String wallet) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void removeAccount(Account account) {
+        accounts.remove(account);
     }
 
-    public void removeAccount(Account walletAccount) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public Optional<Account> findAccount(String accountName) {
+        return accounts.stream().filter(e -> e.getName().equals(accountName)).findFirst();
     }
 
     public List<Account> getAccounts() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return new LinkedList<>(accounts);
+    }
+
+    public void addTag(Tag tag) {
+        tags.add(tag);
+    }
+
+    public Optional<Tag> findTag(String tagName) {
+        return tags.stream().filter(e->e.getName().equals(tagName)).findFirst();
     }
 
     public List<Tag> getTags() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    public void addTag(Tag firstTag) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    public Tag findTag(String firstTag) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return new LinkedList<>(tags);
     }
 }

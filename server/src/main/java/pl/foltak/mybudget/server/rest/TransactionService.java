@@ -8,24 +8,20 @@ import pl.foltak.mybudget.server.entity.Account;
 import pl.foltak.mybudget.server.entity.Category;
 import pl.foltak.mybudget.server.entity.Tag;
 import pl.foltak.mybudget.server.entity.Transaction;
-import pl.foltak.mybudget.server.entity.User;
 
 /**
  *
  * @author mfoltak
  */
-public class TransactionService {
-
-    User user;
+public class TransactionService extends AbstractService {
 
     Transaction convert(TransactionDTO transactionDTO) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    Response createTransaction(String accountName, String mainCategoryName, String subCategoryName, TransactionDTO transactionDTO) {
+    Response createTransaction(String accountName, TransactionDTO transactionDTO) {
         final Account account = findAccount(accountName);
-        final Category mainCategory = findMainCategory(mainCategoryName);
-        final Category subCategory = findSubCategory(mainCategory, subCategoryName);
+        final Category subCategory = getTargetCategory(transactionDTO);
         final Transaction transaction = convert(transactionDTO);
         account.addTransaction(transaction);
         subCategory.addTransaction(transaction);
@@ -34,34 +30,67 @@ public class TransactionService {
                 transaction.addTag(findOrCreateTag(tagName));
             }
         }
-        return Response.created(URI.create("transactions/" + accountName + "/" + transaction.getId())).build();
+        return Response.created(
+                URI.create("transactions/" + accountName + "/" + transaction.getId())).build();
     }
 
-    private Category findSubCategory(Category mainCategory, String subCategoryName) throws NotFoundException {
+    private Category findSubCategory(Category mainCategory, String subCategoryName) throws
+            NotFoundException {
         final Category subCategory = mainCategory.findCategory(subCategoryName);
         if (subCategory == null) {
-            throw new NotFoundException(String.format("Category '%s' doesn't exist", subCategoryName));
+            throw new NotFoundException(
+                    String.format("Category '%s' doesn't exist", subCategoryName));
         }
         return subCategory;
     }
 
-    private Category findMainCategory(String mainCategoryName) throws NotFoundException {
-        final Category mainCategory = user.findCategory(mainCategoryName);
-        if (mainCategory == null) {
-            throw new NotFoundException(String.format("Category '%s' doesn't exist", mainCategoryName));
-        }
-        return mainCategory;
-    }
-
     private Account findAccount(String accountName) throws NotFoundException {
-        final Account account = user.findAccount(accountName);
-        if (account == null) {
-            throw new NotFoundException(String.format("Account '%s' doesn't exist", accountName));
-        }
-        return account;
+        return getUser().findAccount(accountName).orElseThrow(() -> {
+            return new NotFoundException(String.format("Account '%s' doesn't exist", accountName));
+        });
     }
 
     Tag findOrCreateTag(String firstTagName) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    Response removeTransaction(String accountName, long transactionId) {
+        final Account account = findAccount(accountName);
+        final Transaction transaction = account.findTransaction(transactionId);
+        if (transaction == null) {
+            throw new NotFoundException(String.format("Transaction with id=%s doesn't exist",
+                    transactionId));
+        }
+        account.removeTransaction(transaction);
+        return Response.ok().build();
+    }
+
+    Response modifyTransaction(String WALLET, TransactionDTO transactionDTO) {
+        Transaction transaction = findAccount(WALLET).findTransaction(transactionDTO.getId());
+        if (transaction == null) {
+            throw new NotFoundException(String.format("Transaction with id=%s doesn't exist",
+                    transactionDTO.getId()));
+        }
+        transaction = updateTransaction(transactionDTO, transaction);
+        Category subCategory = getTargetCategory(transactionDTO);
+        subCategory.addTransaction(transaction);
+        transaction.getTags().clear();
+        transactionDTO.getTags();
+        for (String tagName : transactionDTO.getTags()) {
+            transaction.addTag(findOrCreateTag(tagName));
+        }
+        return Response.ok().build();
+    }
+
+    private Category getTargetCategory(TransactionDTO transactionDTO) throws NotFoundException {
+        String categoryPath = transactionDTO.getCategoryPath();
+        String[] categoriesNames = categoryPath.split("/");
+        Category mainCategory = findMainCategory(categoriesNames[0]);
+        Category subCategory = findSubCategory(mainCategory, categoriesNames[1]);
+        return subCategory;
+    }
+
+    Transaction updateTransaction(TransactionDTO transactionDTO, Transaction mock) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

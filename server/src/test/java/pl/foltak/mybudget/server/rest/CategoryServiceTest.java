@@ -2,6 +2,7 @@ package pl.foltak.mybudget.server.rest;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
@@ -9,6 +10,7 @@ import javax.ws.rs.core.Response;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
+import static org.mockito.AdditionalMatchers.not;
 import static org.mockito.Mockito.*;
 import pl.foltak.mybudget.server.entity.Category;
 import pl.foltak.mybudget.server.entity.User;
@@ -33,13 +35,15 @@ public class CategoryServiceTest {
 
     @Before
     public void setUp() {
-        instance = new CategoryService();
-        instance.user = user = mock(User.class);
+        instance = spy(new CategoryService());
+        user = mock(User.class);
         mainCategory = mock(Category.class);
         subCategory = mock(Category.class);
         houseCategory = mock(Category.class);
 
-        when(user.findCategory(FOOD)).thenReturn(mainCategory);
+        doReturn(user).when(instance).getUser();
+        when(user.findCategory(FOOD)).thenReturn(Optional.of(mainCategory));
+        when(user.findCategory("nonexistent")).thenReturn(Optional.ofNullable(null));
         when(mainCategory.getName()).thenReturn(FOOD);
         when(mainCategory.findCategory(CANDY)).thenReturn(subCategory);
         when(subCategory.getName()).thenReturn(CANDY);
@@ -90,12 +94,12 @@ public class CategoryServiceTest {
     @Test
     public void testRemovingCategoryFromUserWhenRemovingExistingMainCategory() {
         instance.removeMainCategory(FOOD);
-        verify(user, times(1)).removeCategory(FOOD);
+        verify(user, times(1)).removeCategory(mainCategory);
     }
 
     @Test(expected = NotFoundException.class)
     public void testReturnNotFoundExceptionWhenRemovingNonexistingMainCategory() {
-        instance.removeMainCategory("non-existing");
+        instance.removeMainCategory("nonexistent");
     }
 
     @Test
@@ -134,7 +138,7 @@ public class CategoryServiceTest {
 
     @Test(expected = NotFoundException.class)
     public void testReturnNotFoundWhenModifingNonexistingMainCategory() {
-        instance.editMainCategory("nonExisting", houseCategory);
+        instance.editMainCategory("nonexistent", houseCategory);
     }
 
     @Test
@@ -157,7 +161,7 @@ public class CategoryServiceTest {
 
     @Test(expected = NotFoundException.class)
     public void testThrowNotFoundWhenCreatingSubcategoryAndMainCategoryDoesntExist() {
-        instance.addSubCategory("nonExisting", houseCategory);
+        instance.addSubCategory("nonexistent", houseCategory);
     }
 
     @Test
@@ -184,7 +188,7 @@ public class CategoryServiceTest {
 
     @Test(expected = NotFoundException.class)
     public void testThrowNotFoundWhenRemovingSubcategoryAndParentCategoryDoesntExist() {
-        instance.removeSubCategory("nonExist", CANDY);
+        instance.removeSubCategory("nonexistent", CANDY);
     }
 
     @Test
@@ -223,7 +227,7 @@ public class CategoryServiceTest {
 
     @Test(expected = NotFoundException.class)
     public void testThrowNotFoundExceptionWhenMainCategoryDoesntExist() {
-        instance.editSubCategory("nonExist", CANDY, houseCategory);
+        instance.editSubCategory("nonexistent", CANDY, houseCategory);
     }
 
     @Test(expected = NotFoundException.class)
@@ -275,7 +279,7 @@ public class CategoryServiceTest {
 
     @Test(expected = NotFoundException.class)
     public void testThrowNotFoundExceptionWhenGettingSubcategoriesFromCategoryThatDoesntExist() {
-        instance.getSubcategories("nonExist", mock(HttpServletResponse.class));
+        instance.getSubcategories("nonexistent", mock(HttpServletResponse.class));
     }
 
     private static URI createURI(String firstLevelCategory, String secondLevelCategory) {

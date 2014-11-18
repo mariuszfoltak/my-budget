@@ -6,7 +6,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import pl.foltak.mybudget.server.entity.Tag;
-import pl.foltak.mybudget.server.entity.User;
 
 /**
  *
@@ -14,12 +13,11 @@ import pl.foltak.mybudget.server.entity.User;
  */
 @Path("tags")
 @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-public class TagService {
-    User user;
+public class TagService extends AbstractService {
 
     List<Tag> getTags(HttpServletResponse response) {
         response.setStatus(200);
-        return user.getTags();
+        return getUser().getTags();
     }
 
 }

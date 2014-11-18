@@ -15,7 +15,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import pl.foltak.mybudget.server.entity.Category;
-import pl.foltak.mybudget.server.entity.User;
 import pl.foltak.mybudget.server.rest.exception.ConflictException;
 
 /**
@@ -24,19 +23,16 @@ import pl.foltak.mybudget.server.rest.exception.ConflictException;
  */
 @Path("/categories")
 @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-public class CategoryService {
+public class CategoryService extends AbstractService {
 
-    private static final String CATEGORY_DOESNT_EXIST = "Category '%s' doesn't exist";
     private static final String CATEGORY_ALREADY_EXIST = "Category '%s' already exists";
     private static final String CATEGORY_HAS_TRANSACTIONS = "Category '%s' has transactions";
     private static final String CATEGORY_HAS_SUBCATEGORIES = "Category '%s' has subcategories";
 
-    User user;
-
     @PUT
     public Response addMainCategory(Category category) {
         checkIfMainCategoryExists(category);
-        user.addCategory(category);
+        getUser().addCategory(category);
         return Response.created(createURI(category)).build();
     }
 
@@ -54,7 +50,7 @@ public class CategoryService {
         Category category = findMainCategory(categoryName);
         checkIfCategoryHasSubCategories(category);
         checkIfCategoryHasTransactions(category);
-        user.removeCategory(categoryName);
+        getUser().removeCategory(category);
         return Response.ok().build();
     }
 
@@ -90,7 +86,7 @@ public class CategoryService {
     @GET
     public List<Category> getAllCategories(HttpServletResponse response) {
         response.setStatus(200);
-        return user.getCategories();
+        return getUser().getCategories();
     }
 
     @Path("{mainCategory}")
@@ -101,13 +97,6 @@ public class CategoryService {
         return mainCategory.getCategories();
     }
 
-    private Category findMainCategory(String categoryName) throws NotFoundException {
-        final Category category = user.findCategory(categoryName);
-        if (category == null) {
-            throw new NotFoundException(String.format(CATEGORY_DOESNT_EXIST, categoryName));
-        }
-        return category;
-    }
 
     private static URI createURI(String parentCategoryName, String categoryName) {
         return URI.create("category/" + parentCategoryName + "/" + categoryName);
@@ -130,7 +119,7 @@ public class CategoryService {
     }
 
     private void checkIfMainCategoryExists(Category category) throws ConflictException {
-        if (user.findCategory(category.getName()) != null) {
+        if (getUser().findCategory(category.getName()) != null) {
             throw new ConflictException(String.format(CATEGORY_ALREADY_EXIST, category.getName()));
         }
     }

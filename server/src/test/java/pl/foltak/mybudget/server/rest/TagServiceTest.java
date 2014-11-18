@@ -21,8 +21,10 @@ public class TagServiceTest {
 
     @Before
     public void setUp() {
-        instance = new TagService();
-        instance.user = user = mock(User.class);
+        instance = spy(new TagService());
+        user = mock(User.class);
+        
+        doReturn(user).when(instance).getUser();
     }
 
     /**
