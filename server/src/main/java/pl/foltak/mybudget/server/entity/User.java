@@ -3,6 +3,7 @@ package pl.foltak.mybudget.server.entity;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import lombok.NonNull;
 
 /**
  * The account entity.
@@ -20,8 +21,7 @@ public class User {
      *
      * @param category the category to be added.
      */
-    public void addCategory(Category category) {
-        //TODO: Check null category
+    public void addCategory(@NonNull Category category) {
         categories.add(category);
     }
 
@@ -58,8 +58,7 @@ public class User {
      *
      * @param account the account to be added
      */
-    public void addAccount(Account account) {
-        //TODO: null check
+    public void addAccount(@NonNull Account account) {
         accounts.add(account);
     }
 
@@ -96,8 +95,7 @@ public class User {
      *
      * @param tag the tag to be added
      */
-    public void addTag(Tag tag) {
-        //TODO: null check
+    public void addTag(@NonNull Tag tag) {
         tags.add(tag);
     }
 

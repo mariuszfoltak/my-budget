@@ -41,6 +41,15 @@ public class UserTest {
     }
 
     /**
+     * The addCategory() should throw NullPointerException when parameter is null.
+     */
+    @Test(expected = NullPointerException.class)
+    public void isNullPointerExceptionThrownWhenAddCategoryWithNullParameterIsCalled() {
+        instance.categories = mock(List.class);
+        instance.addCategory(null);
+    }
+
+    /**
      * The findCategory method should return category.
      */
     @Test
@@ -55,7 +64,8 @@ public class UserTest {
     }
 
     /**
-     * The findCategory method should return empty Optional if category with given name doesn't exist.
+     * The findCategory method should return empty Optional if category with given name doesn't
+     * exist.
      */
     @Test
     public void isNullReturnedWhenFindCategoryThatDoesntExist() {
@@ -99,6 +109,15 @@ public class UserTest {
     }
 
     /**
+     * The addAccount() should throw NullPointerException when parameter is null.
+     */
+    @Test(expected = NullPointerException.class)
+    public void isNullPointerExceptionThrownWhenAddAccountWithNullParameterIsCalled() {
+        instance.accounts = mock(List.class);
+        instance.addAccount(null);
+    }
+
+    /**
      * The removeAccount method should remove account from accounts list.
      */
     @Test
@@ -119,7 +138,7 @@ public class UserTest {
         when(account.getName()).thenReturn("wallet");
         assertSame(account, instance.findAccount("wallet").get());
     }
-    
+
     /**
      * The findAccount method should return empty Optional, when account doesn't exist.
      */
@@ -151,6 +170,15 @@ public class UserTest {
     }
 
     /**
+     * The addTag() should throw NullPointerException when the parameter is null.
+     */
+    @Test(expected = NullPointerException.class)
+    public void isNullPointerExceptionThrownWhenAddTagWithNullParameterIsCalled() {
+        instance.tags = mock(List.class);
+        instance.addTag(null);
+    }
+
+    /**
      * The findTag method should return tag with given name.
      */
     @Test
@@ -160,7 +188,7 @@ public class UserTest {
         when(tag.getName()).thenReturn("wallet");
         assertSame(tag, instance.findTag("wallet").get());
     }
-    
+
     /**
      * Method should return empty optional, when account doesn't exist.
      */
