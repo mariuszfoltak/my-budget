@@ -57,7 +57,7 @@ public class AccountTest {
      * When addTransaction() is called with null parameter, then method should throw
      * IllegalArgumentException.
      */
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NullPointerException.class)
     public void isIllegalArgumentExceptionThrownWhenAddTransactionMethodWithNullParameterIsCalled() {
         instance.addTransaction(null);
     }
