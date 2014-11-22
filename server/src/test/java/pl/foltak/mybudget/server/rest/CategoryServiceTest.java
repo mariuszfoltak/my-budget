@@ -42,10 +42,11 @@ public class CategoryServiceTest {
         houseCategory = mock(Category.class);
 
         doReturn(user).when(instance).getUser();
+        when(user.findCategory(any())).thenReturn(Optional.ofNullable(null));
         when(user.findCategory(FOOD)).thenReturn(Optional.of(mainCategory));
-        when(user.findCategory("nonexistent")).thenReturn(Optional.ofNullable(null));
         when(mainCategory.getName()).thenReturn(FOOD);
-        when(mainCategory.findCategory(CANDY)).thenReturn(subCategory);
+        when(mainCategory.findSubCategory(any())).thenReturn(Optional.ofNullable(null));
+        when(mainCategory.findSubCategory(CANDY)).thenReturn(Optional.of(subCategory));
         when(subCategory.getName()).thenReturn(CANDY);
         when(houseCategory.getName()).thenReturn(HOUSE);
     }
@@ -62,7 +63,8 @@ public class CategoryServiceTest {
         final Category category = mock(Category.class);
         when(category.getName()).thenReturn(car);
         Response response = instance.addMainCategory(category);
-        assertEquals("Location header isn't equal to new category,", createURI(car), response.getLocation());
+        assertEquals("Location header isn't equal to new category,", createURI(car),
+                response.getLocation());
     }
 
     @Test
@@ -144,7 +146,7 @@ public class CategoryServiceTest {
     @Test
     public void testAddSecondLevelCategoryAddCategoryToParentCategory() {
         instance.addSubCategory(FOOD, houseCategory);
-        verify(mainCategory).addCategory(houseCategory);
+        verify(mainCategory).addSubCategory(houseCategory);
     }
 
     @Test
@@ -156,7 +158,8 @@ public class CategoryServiceTest {
     @Test
     public void testReturnLocationHeaderWhenAddingSubcategory() {
         Response response = instance.addSubCategory(FOOD, houseCategory);
-        assertEquals("Location header isn't equal to new category", createURI(FOOD, HOUSE), response.getLocation());
+        assertEquals("Location header isn't equal to new category", createURI(FOOD, HOUSE),
+                response.getLocation());
     }
 
     @Test(expected = NotFoundException.class)
@@ -170,14 +173,14 @@ public class CategoryServiceTest {
             instance.addSubCategory(FOOD, subCategory);
             expectedException(ConflictException.class);
         } catch (Exception e) {
-            verify(mainCategory, never()).addCategory(any());
+            verify(mainCategory, never()).addSubCategory(any());
         }
     }
 
     @Test
     public void testUpdateEntityWhenRemovingSubcategory() {
         instance.removeSubCategory(FOOD, CANDY);
-        verify(mainCategory).removeSubcategory(CANDY);
+        verify(mainCategory).removeSubCategory(subCategory);
     }
 
     @Test
@@ -194,10 +197,10 @@ public class CategoryServiceTest {
     @Test
     public void testThrowNotFoundExceptionWhenRemovingSubcategoryThatDoesntExist() {
         try {
-            instance.removeSubCategory(FOOD, "nonExist");
+            instance.removeSubCategory(FOOD, "nonexistent");
             expectedException(NotFoundException.class);
         } catch (NotFoundException e) {
-            verify(mainCategory, never()).removeSubcategory(any());
+            verify(mainCategory, never()).removeSubCategory(any());
         }
 
     }
@@ -209,7 +212,7 @@ public class CategoryServiceTest {
             instance.removeSubCategory(FOOD, CANDY);
             expectedException(BadRequestException.class);
         } catch (Exception e) {
-            verify(mainCategory, never()).removeSubcategory(any());
+            verify(mainCategory, never()).removeSubCategory(any());
         }
     }
 
@@ -232,12 +235,12 @@ public class CategoryServiceTest {
 
     @Test(expected = NotFoundException.class)
     public void testThrowNotFoundExceptionWhenSubCategoryDoesntExist() {
-        instance.editSubCategory(FOOD, "nonExist", houseCategory);
+        instance.editSubCategory(FOOD, "nonexistent", houseCategory);
     }
 
     @Test
     public void testThrowConflictExceptionWhenSubCategoryWithNewNameAlreadyExist() {
-        when(mainCategory.findCategory(CANDY)).thenReturn(subCategory);
+        when(mainCategory.findSubCategory(CANDY)).thenReturn(Optional.of(subCategory));
         when(subCategory.getName()).thenReturn(CANDY);
         try {
             instance.editSubCategory(FOOD, CANDY, subCategory);
@@ -272,7 +275,7 @@ public class CategoryServiceTest {
     @Test
     public void testReturnCategoriesListWhenGettingSubcategories() {
         List<Category> categories = mock(List.class);
-        when(mainCategory.getCategories()).thenReturn(categories);
+        when(mainCategory.getSubCategories()).thenReturn(categories);
         List<Category> result = instance.getSubcategories(FOOD, mock(HttpServletResponse.class));
         assertEquals("List of categories it's not equals", categories, result);
     }

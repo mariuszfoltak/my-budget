@@ -36,7 +36,7 @@ public class TransactionService extends AbstractService {
 
     private Category findSubCategory(Category mainCategory, String subCategoryName) throws
             NotFoundException {
-        final Category subCategory = mainCategory.findCategory(subCategoryName);
+        final Category subCategory = mainCategory.findSubCategory(subCategoryName).orElse(null);
         if (subCategory == null) {
             throw new NotFoundException(
                     String.format("Category '%s' doesn't exist", subCategoryName));
@@ -66,10 +66,12 @@ public class TransactionService extends AbstractService {
 
     Response modifyTransaction(String WALLET, TransactionDTO transactionDTO) {
         final Account account = findAccount(WALLET);
-        Transaction transaction = account.findTransaction(transactionDTO.getId()).orElseThrow(()->{
-            return new NotFoundException(String.format("Transaction with id=%s doesn't exist",
-                    transactionDTO.getId()));
-        });
+        Transaction transaction = account.findTransaction(transactionDTO.getId()).orElseThrow(
+                () -> {
+                    return new NotFoundException(String.format(
+                                    "Transaction with id=%s doesn't exist",
+                                    transactionDTO.getId()));
+                });
         transaction = updateTransaction(transactionDTO, transaction);
         Category subCategory = getTargetCategory(transactionDTO);
         subCategory.addTransaction(transaction);

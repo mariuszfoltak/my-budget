@@ -59,7 +59,7 @@ public class CategoryService extends AbstractService {
     public Response addSubCategory(@PathParam("mainCategory") String mainCategoryName, Category category) {
         final Category mainCategory = findMainCategory(mainCategoryName);
         checkIfSubCategoryExists(mainCategory, category);
-        mainCategory.addCategory(category);
+        mainCategory.addSubCategory(category);
         return Response.created(createURI(mainCategoryName, category.getName())).build();
     }
 
@@ -79,7 +79,7 @@ public class CategoryService extends AbstractService {
         Category mainCategory = findMainCategory(mainCategoryName);
         Category subCategory = findSubCategory(mainCategory, subCategoryName);
         checkIfCategoryHasTransactions(subCategory);
-        mainCategory.removeSubcategory(subCategoryName);
+        mainCategory.removeSubCategory(subCategory);
         return Response.ok().build();
     }
 
@@ -94,7 +94,7 @@ public class CategoryService extends AbstractService {
     public List<Category> getSubcategories(@PathParam("mainCategory") String mainCategoryName, HttpServletResponse response) {
         response.setStatus(200);
         Category mainCategory = findMainCategory(mainCategoryName);
-        return mainCategory.getCategories();
+        return mainCategory.getSubCategories();
     }
 
 
@@ -119,19 +119,19 @@ public class CategoryService extends AbstractService {
     }
 
     private void checkIfMainCategoryExists(Category category) throws ConflictException {
-        if (getUser().findCategory(category.getName()) != null) {
+        if (getUser().findCategory(category.getName()).isPresent()) {
             throw new ConflictException(String.format(CATEGORY_ALREADY_EXIST, category.getName()));
         }
     }
 
     private void checkIfSubCategoryExists(final Category mainCategory, Category category) throws ConflictException {
-        if (mainCategory.findCategory(category.getName()) != null) {
+        if (mainCategory.findSubCategory(category.getName()).isPresent()) {
             throw new ConflictException(String.format(CATEGORY_ALREADY_EXIST, category.getName()));
         }
     }
 
     private Category findSubCategory(final Category mainCategory, String subCategoryName) throws NotFoundException {
-        final Category subCategory = mainCategory.findCategory(subCategoryName);
+        final Category subCategory = mainCategory.findSubCategory(subCategoryName).orElse(null);
         if (subCategory == null) {
             throw new NotFoundException(String.format(CATEGORY_DOESNT_EXIST, subCategoryName));
         }

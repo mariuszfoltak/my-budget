@@ -70,7 +70,8 @@ public class TransactionServiceTest {
         when(user.findCategory(NONEXISTENT)).thenReturn(Optional.ofNullable(null));
         when(account.findTransaction(ID_47)).thenReturn(Optional.of(transaction));
         when(account.findTransaction(not(eq(ID_47)))).thenReturn(Optional.ofNullable(null));
-        when(mainCategory.findCategory(CANDY)).thenReturn(subCategory);
+        when(mainCategory.findSubCategory(CANDY)).thenReturn(Optional.of(subCategory));
+        when(mainCategory.findSubCategory(not(eq(CANDY)))).thenReturn(Optional.ofNullable(null));
         when(transactionDTO.getId()).thenReturn(ID_47);
         when(transactionDTO.getCategoryPath()).thenReturn(FOOD + "/" + CANDY);
         when(transactionDTO.getTags()).thenReturn(tags);
