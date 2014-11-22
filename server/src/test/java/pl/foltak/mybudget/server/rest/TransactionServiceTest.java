@@ -64,14 +64,14 @@ public class TransactionServiceTest {
         doReturn(transaction).when(instance).convert(transactionDTO);
         doReturn(transaction).when(instance).updateTransaction(transactionDTO, transaction);
         
+        when(user.findAccount(any())).thenReturn(Optional.ofNullable(null));
         when(user.findAccount(WALLET)).thenReturn(Optional.of(account));
-        when(user.findAccount(NONEXISTENT)).thenReturn(Optional.ofNullable(null));
+        when(user.findCategory(any())).thenReturn(Optional.ofNullable(null));
         when(user.findCategory(FOOD)).thenReturn(Optional.of(mainCategory));
-        when(user.findCategory(NONEXISTENT)).thenReturn(Optional.ofNullable(null));
+        when(account.findTransaction(anyLong())).thenReturn(Optional.ofNullable(null));
         when(account.findTransaction(ID_47)).thenReturn(Optional.of(transaction));
-        when(account.findTransaction(not(eq(ID_47)))).thenReturn(Optional.ofNullable(null));
+        when(mainCategory.findSubCategory(any())).thenReturn(Optional.ofNullable(null));
         when(mainCategory.findSubCategory(CANDY)).thenReturn(Optional.of(subCategory));
-        when(mainCategory.findSubCategory(not(eq(CANDY)))).thenReturn(Optional.ofNullable(null));
         when(transactionDTO.getId()).thenReturn(ID_47);
         when(transactionDTO.getCategoryPath()).thenReturn(FOOD + "/" + CANDY);
         when(transactionDTO.getTags()).thenReturn(tags);

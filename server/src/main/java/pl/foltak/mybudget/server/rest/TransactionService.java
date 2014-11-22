@@ -34,22 +34,6 @@ public class TransactionService extends AbstractService {
                 URI.create("transactions/" + accountName + "/" + transaction.getId())).build();
     }
 
-    private Category findSubCategory(Category mainCategory, String subCategoryName) throws
-            NotFoundException {
-        final Category subCategory = mainCategory.findSubCategory(subCategoryName).orElse(null);
-        if (subCategory == null) {
-            throw new NotFoundException(
-                    String.format("Category '%s' doesn't exist", subCategoryName));
-        }
-        return subCategory;
-    }
-
-    private Account findAccount(String accountName) throws NotFoundException {
-        return getUser().findAccount(accountName).orElseThrow(() -> {
-            return new NotFoundException(String.format("Account '%s' doesn't exist", accountName));
-        });
-    }
-
     Tag findOrCreateTag(String firstTagName) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }

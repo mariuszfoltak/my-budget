@@ -23,7 +23,7 @@ public class TagServiceTest {
     public void setUp() {
         instance = spy(new TagService());
         user = mock(User.class);
-        
+
         doReturn(user).when(instance).getUser();
     }
 
@@ -37,6 +37,9 @@ public class TagServiceTest {
         verify(httpServletResponse).setStatus(200);
     }
 
+    /**
+     * When get tags is called, then the service should return list of tags.
+     */
     @Test
     public void doesServiceReturnListOfTagsWhenGetTagsIsCalled() {
         List<Tag> tags = new LinkedList<>();

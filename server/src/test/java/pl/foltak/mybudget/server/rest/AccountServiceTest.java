@@ -40,8 +40,8 @@ public class AccountServiceTest {
 
         doReturn(user).when(instance).getUser();
         when(walletAccount.getName()).thenReturn(WALLET);
+        when(user.findAccount(any())).thenReturn(Optional.ofNullable(null));
         when(user.findAccount(WALLET)).thenReturn(Optional.of(walletAccount));
-        when(user.findAccount(NONEXISTENT)).thenReturn(Optional.ofNullable(null));
         when(bankAccount.getName()).thenReturn(BANK);
     }
 

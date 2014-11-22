@@ -31,14 +31,15 @@ public class CategoryService extends AbstractService {
 
     @PUT
     public Response addMainCategory(Category category) {
-        checkIfMainCategoryExists(category);
+        throwConflictExceptionIfMainCategoryAlreadyExists(category);
         getUser().addCategory(category);
         return Response.created(createURI(category)).build();
     }
 
     @Path("{mainCategory}")
     @POST
-    public Response editMainCategory(@PathParam("mainCategory") String categoryName, Category category) {
+    public Response editMainCategory(@PathParam("mainCategory") String categoryName,
+            Category category) {
         Category currentCategory = findMainCategory(categoryName);
         currentCategory.setName(category.getName());
         return Response.ok().build();
@@ -56,26 +57,29 @@ public class CategoryService extends AbstractService {
 
     @Path("{mainCategory}")
     @PUT
-    public Response addSubCategory(@PathParam("mainCategory") String mainCategoryName, Category category) {
+    public Response addSubCategory(@PathParam("mainCategory") String mainCategoryName,
+            Category category) {
         final Category mainCategory = findMainCategory(mainCategoryName);
-        checkIfSubCategoryExists(mainCategory, category);
+        throwConflictExceptionIfSubCategoryAlreadyExists(mainCategory, category);
         mainCategory.addSubCategory(category);
         return Response.created(createURI(mainCategoryName, category.getName())).build();
     }
 
     @Path("{mainCategory}/{subCategory}")
     @POST
-    Response editSubCategory(@PathParam("mainCategory") String mainCategoryName, @PathParam("subCategory") String subCategoryName, Category category) {
+    Response editSubCategory(@PathParam("mainCategory") String mainCategoryName,
+            @PathParam("subCategory") String subCategoryName, Category category) {
         final Category mainCategory = findMainCategory(mainCategoryName);
         final Category subCategory = findSubCategory(mainCategory, subCategoryName);
-        checkIfSubCategoryExists(mainCategory, category);
+        throwConflictExceptionIfSubCategoryAlreadyExists(mainCategory, category);
         subCategory.setName(category.getName());
         return Response.ok().build();
     }
 
     @Path("{mainCategory}/{subCategory}")
     @DELETE
-    public Response removeSubCategory(@PathParam("mainCategory") String mainCategoryName, @PathParam("subCategory") String subCategoryName) {
+    public Response removeSubCategory(@PathParam("mainCategory") String mainCategoryName,
+            @PathParam("subCategory") String subCategoryName) {
         Category mainCategory = findMainCategory(mainCategoryName);
         Category subCategory = findSubCategory(mainCategory, subCategoryName);
         checkIfCategoryHasTransactions(subCategory);
@@ -91,12 +95,12 @@ public class CategoryService extends AbstractService {
 
     @Path("{mainCategory}")
     @GET
-    public List<Category> getSubcategories(@PathParam("mainCategory") String mainCategoryName, HttpServletResponse response) {
+    public List<Category> getSubcategories(@PathParam("mainCategory") String mainCategoryName,
+            HttpServletResponse response) {
         response.setStatus(200);
         Category mainCategory = findMainCategory(mainCategoryName);
         return mainCategory.getSubCategories();
     }
-
 
     private static URI createURI(String parentCategoryName, String categoryName) {
         return URI.create("category/" + parentCategoryName + "/" + categoryName);
@@ -108,33 +112,29 @@ public class CategoryService extends AbstractService {
 
     private void checkIfCategoryHasTransactions(Category category) throws BadRequestException {
         if (category.hasTransactions()) {
-            throw new BadRequestException(String.format(CATEGORY_HAS_TRANSACTIONS, category.getName()));
+            throw new BadRequestException(String.format(CATEGORY_HAS_TRANSACTIONS,
+                    category.getName()));
         }
     }
 
     private void checkIfCategoryHasSubCategories(Category category) throws BadRequestException {
         if (category.hasSubCategories()) {
-            throw new BadRequestException(String.format(CATEGORY_HAS_SUBCATEGORIES, category.getName()));
+            throw new BadRequestException(String.format(CATEGORY_HAS_SUBCATEGORIES,
+                    category.getName()));
         }
     }
 
-    private void checkIfMainCategoryExists(Category category) throws ConflictException {
+    private void throwConflictExceptionIfMainCategoryAlreadyExists(Category category)
+            throws ConflictException {
         if (getUser().findCategory(category.getName()).isPresent()) {
             throw new ConflictException(String.format(CATEGORY_ALREADY_EXIST, category.getName()));
         }
     }
 
-    private void checkIfSubCategoryExists(final Category mainCategory, Category category) throws ConflictException {
+    private void throwConflictExceptionIfSubCategoryAlreadyExists(final Category mainCategory,
+            Category category) throws ConflictException {
         if (mainCategory.findSubCategory(category.getName()).isPresent()) {
             throw new ConflictException(String.format(CATEGORY_ALREADY_EXIST, category.getName()));
         }
-    }
-
-    private Category findSubCategory(final Category mainCategory, String subCategoryName) throws NotFoundException {
-        final Category subCategory = mainCategory.findSubCategory(subCategoryName).orElse(null);
-        if (subCategory == null) {
-            throw new NotFoundException(String.format(CATEGORY_DOESNT_EXIST, subCategoryName));
-        }
-        return subCategory;
     }
 }
