@@ -2,11 +2,9 @@ package pl.foltak.mybudget.server.rest;
 
 import java.net.URI;
 import java.util.List;
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
-import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -30,14 +28,15 @@ public class CategoryService extends AbstractService {
     private static final String CATEGORY_HAS_SUBCATEGORIES = "Category '%s' has subcategories";
 
     @PUT
+    @Path("/")
     public Response addMainCategory(Category category) {
         throwConflictExceptionIfMainCategoryAlreadyExists(category);
         getUser().addCategory(category);
         return Response.created(createURI(category)).build();
     }
 
-    @Path("{mainCategory}")
     @POST
+    @Path("/{mainCategory}")
     public Response editMainCategory(@PathParam("mainCategory") String categoryName,
             Category category) {
         Category currentCategory = findMainCategory(categoryName);
@@ -45,8 +44,8 @@ public class CategoryService extends AbstractService {
         return Response.ok().build();
     }
 
-    @Path("{mainCategory}")
     @DELETE
+    @Path("/{mainCategory}")
     public Response removeMainCategory(@PathParam("mainCategory") String categoryName) {
         Category category = findMainCategory(categoryName);
         checkIfCategoryHasSubCategories(category);
@@ -55,8 +54,8 @@ public class CategoryService extends AbstractService {
         return Response.ok().build();
     }
 
-    @Path("{mainCategory}")
     @PUT
+    @Path("/{mainCategory}")
     public Response addSubCategory(@PathParam("mainCategory") String mainCategoryName,
             Category category) {
         final Category mainCategory = findMainCategory(mainCategoryName);
@@ -65,8 +64,8 @@ public class CategoryService extends AbstractService {
         return Response.created(createURI(mainCategoryName, category.getName())).build();
     }
 
-    @Path("{mainCategory}/{subCategory}")
     @POST
+    @Path("/{mainCategory}/{subCategory}")
     Response editSubCategory(@PathParam("mainCategory") String mainCategoryName,
             @PathParam("subCategory") String subCategoryName, Category category) {
         final Category mainCategory = findMainCategory(mainCategoryName);
@@ -76,8 +75,8 @@ public class CategoryService extends AbstractService {
         return Response.ok().build();
     }
 
-    @Path("{mainCategory}/{subCategory}")
     @DELETE
+    @Path("/{mainCategory}/{subCategory}")
     public Response removeSubCategory(@PathParam("mainCategory") String mainCategoryName,
             @PathParam("subCategory") String subCategoryName) {
         Category mainCategory = findMainCategory(mainCategoryName);
@@ -88,18 +87,19 @@ public class CategoryService extends AbstractService {
     }
 
     @GET
-    public List<Category> getAllCategories(HttpServletResponse response) {
-        response.setStatus(200);
-        return getUser().getCategories();
+    @Path("/")
+    public Response getAllCategories() {
+        final List<Category> categories = getUser().getCategories();
+        return Response.ok(categories).build();
     }
 
-    @Path("{mainCategory}")
     @GET
-    public List<Category> getSubcategories(@PathParam("mainCategory") String mainCategoryName,
-            HttpServletResponse response) {
-        response.setStatus(200);
-        Category mainCategory = findMainCategory(mainCategoryName);
-        return mainCategory.getSubCategories();
+    @Path("{mainCategory}")
+    public Response getSubcategories(@PathParam(value = "mainCategory")
+            String mainCategoryName) {
+        final Category mainCategory = findMainCategory(mainCategoryName);
+        final List<Category> subCategories = mainCategory.getSubCategories();
+        return Response.ok(subCategories).build();
     }
 
     private static URI createURI(String parentCategoryName, String categoryName) {

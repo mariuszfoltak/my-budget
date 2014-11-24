@@ -252,37 +252,35 @@ public class CategoryServiceTest {
 
     @Test
     public void testReturnOkStatusWhenGettingAllCategories() {
-        HttpServletResponse response = mock(HttpServletResponse.class);
-        instance.getAllCategories(response);
-        verify(response).setStatus(200);
+        int statusCode = instance.getAllCategories().getStatus();
+        assertEquals("Incorrect status code", 200, statusCode);
     }
 
     @Test
     public void testReturnCategoriesListWhenGettingAllCategories() {
         List<Category> categories = mock(List.class);
         when(user.getCategories()).thenReturn(categories);
-        List<Category> result = instance.getAllCategories(mock(HttpServletResponse.class));
+        List<Category> result = (List<Category>) instance.getAllCategories().getEntity();
         assertEquals("List of categories it's not equals", categories, result);
     }
 
     @Test
     public void testReturnOkStatusWhenGettingSubcategories() {
-        HttpServletResponse response = mock(HttpServletResponse.class);
-        instance.getSubcategories(FOOD, response);
-        verify(response).setStatus(200);
+        final int statusCode = instance.getSubcategories(FOOD).getStatus();
+        assertEquals("Incorrect status code", 200, statusCode);
     }
 
     @Test
     public void testReturnCategoriesListWhenGettingSubcategories() {
         List<Category> categories = mock(List.class);
         when(mainCategory.getSubCategories()).thenReturn(categories);
-        List<Category> result = instance.getSubcategories(FOOD, mock(HttpServletResponse.class));
+        List<Category> result = (List<Category>) instance.getSubcategories(FOOD).getEntity();
         assertEquals("List of categories it's not equals", categories, result);
     }
 
     @Test(expected = NotFoundException.class)
     public void testThrowNotFoundExceptionWhenGettingSubcategoriesFromCategoryThatDoesntExist() {
-        instance.getSubcategories("nonexistent", mock(HttpServletResponse.class));
+        instance.getSubcategories("nonexistent");
     }
 
     private static URI createURI(String firstLevelCategory, String secondLevelCategory) {

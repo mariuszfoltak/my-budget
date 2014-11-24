@@ -9,7 +9,6 @@ import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import static org.mockito.AdditionalMatchers.not;
 import static org.mockito.Mockito.*;
 import pl.foltak.mybudget.server.dto.TransactionDTO;
 import pl.foltak.mybudget.server.entity.Account;
@@ -37,7 +36,7 @@ public class TransactionServiceTest {
     private Account account;
     private Category subCategory;
     private Category mainCategory;
-    private TransactionService instance;
+    private AccountService instance;
     private TransactionDTO transactionDTO;
 
     private Tag firstTag;
@@ -50,7 +49,7 @@ public class TransactionServiceTest {
         user = mock(User.class);
         tags = Arrays.asList(new String[]{FIRST_TAG, SECOND_TAG});
         account = mock(Account.class);
-        instance = spy(new TransactionService());
+        instance = spy(new AccountService());
         firstTag = mock(Tag.class);
         secondTag = mock(Tag.class);
         subCategory = mock(Category.class);
@@ -93,7 +92,7 @@ public class TransactionServiceTest {
     public void isLocationHeaderReturnedWhenCreateTransactionIsCalled() {
         when(transaction.getId()).thenReturn(ID_47);
         Response response = instance.createTransaction(WALLET, transactionDTO);
-        assertEquals("Incorrect location header", URI.create("transactions/wallet/47"),
+        assertEquals("Incorrect location header", URI.create("accounts/wallet/47"),
                 response.getLocation());
     }
 
@@ -241,9 +240,8 @@ public class TransactionServiceTest {
      */
     @Test
     public void areAllOldTagsRemovedFromTransactionWhenItIsModified() {
-        when(transaction.getTags()).thenReturn(mock(List.class));
         instance.modifyTransaction(WALLET, transactionDTO);
-        verify(transaction.getTags()).clear();
+        verify(transaction).clearTags();
     }
 
 /**

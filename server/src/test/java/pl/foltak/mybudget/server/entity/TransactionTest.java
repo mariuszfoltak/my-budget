@@ -50,5 +50,12 @@ public class TransactionTest {
         instance.tags = mock(List.class);
         instance.addTag(null);
     }
+    
+    @Test
+    public void isClearedListWhenClearTagsIsCalled() {
+        instance.tags = mock(List.class);
+        instance.clearTags();
+        verify(instance.tags).clear();
+    }
 
 }

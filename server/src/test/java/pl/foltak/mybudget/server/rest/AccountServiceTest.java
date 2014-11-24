@@ -60,7 +60,8 @@ public class AccountServiceTest {
     @Test
     public void isLocationHeaderReturnedWhenAccountIsCreated() {
         Response response = instance.createAccount(bankAccount);
-        assertEquals("Location header isn't correct", URI.create("account/bank"), response.getLocation());
+        assertEquals("Location header isn't correct", URI.create("account/bank"),
+                response.getLocation());
     }
 
     /**
@@ -73,7 +74,8 @@ public class AccountServiceTest {
     }
 
     /**
-     * When create account is called and the account already exist, service should return 409 Conflict and doesn't add account.
+     * When create account is called and the account already exist, service should return 409
+     * Conflict and doesn't add account.
      */
     @Test
     public void isConflictExceptionThrownWhenTryToCreateAccountThatAlreadyExists() {
@@ -104,7 +106,8 @@ public class AccountServiceTest {
     }
 
     /**
-     * When modify account is called and the account doesn't exist, service should return 404 Not Found.
+     * When modify account is called and the account doesn't exist, service should return 404 Not
+     * Found.
      */
     @Test(expected = NotFoundException.class)
     public void isNotFoundExceptionThrownWhenTryToModifyAccountThatDoesntExist() {
@@ -112,7 +115,8 @@ public class AccountServiceTest {
     }
 
     /**
-     * When modify account is called and an account with new name already exist, service should return 409 Conflict and doesn't modify account.
+     * When modify account is called and an account with new name already exist, service should
+     * return 409 Conflict and doesn't modify account.
      */
     @Test
     public void isConflictExceptionThrownWhenTryToModifyAccountToExistingAccount() {
@@ -152,8 +156,8 @@ public class AccountServiceTest {
     private static final String NONEXISTENT = "nonexistent";
 
     /**
-     * When remove account is called and the account has transactions,
-     * service should return 400 Bad Request.
+     * When remove account is called and the account has transactions, service should return 400 Bad
+     * Request.
      */
     @Test
     public void isBadRequestExceptionThrownWhenTryToRemoveAccountThatHasTransactions() {
@@ -165,17 +169,17 @@ public class AccountServiceTest {
             verify(user, never()).removeAccount(any());
         }
     }
-    
+
     /**
      * When get accounts is called, service should return 200 OK.
      */
     @Test
     public void isOkStatusReturnedWhenGetAccountsIsCalled() {
         final HttpServletResponse httpServletResponse = mock(HttpServletResponse.class);
-        instance.getAccounts(httpServletResponse);
-        verify(httpServletResponse).setStatus(200);
+        Response response = instance.getAccounts();
+        assertEquals("Incorrect status code", 200, response.getStatus());
     }
-    
+
     /**
      * When get accounts is called, service should return list of accounts.
      */
@@ -185,7 +189,7 @@ public class AccountServiceTest {
         accounts.add(bankAccount);
         accounts.add(walletAccount);
         when(user.getAccounts()).thenReturn(accounts);
-        List<Account> result = instance.getAccounts(mock(HttpServletResponse.class));
+        List<Account> result = (List<Account>) instance.getAccounts().getEntity();
         assertEquals("Incorrect account list", accounts, result);
     }
 }

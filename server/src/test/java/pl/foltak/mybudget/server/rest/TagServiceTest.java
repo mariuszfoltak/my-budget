@@ -33,8 +33,8 @@ public class TagServiceTest {
     @Test
     public void isOkStatusReturnedWhenGetTagsIsCalled() {
         final HttpServletResponse httpServletResponse = mock(HttpServletResponse.class);
-        instance.getTags(httpServletResponse);
-        verify(httpServletResponse).setStatus(200);
+        int statusCode = instance.getTags().getStatus();
+        assertEquals("Incorrect status code", 200, statusCode);
     }
 
     /**
@@ -47,7 +47,7 @@ public class TagServiceTest {
         tags.add(mock(Tag.class));
         when(user.getTags()).thenReturn(tags);
 
-        List<Tag> result = instance.getTags(mock(HttpServletResponse.class));
+        List<Tag> result = (List<Tag>) instance.getTags().getEntity();
         assertEquals("Incorrect list of tags", tags, result);
     }
 
