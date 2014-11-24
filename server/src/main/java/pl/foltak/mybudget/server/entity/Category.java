@@ -1,12 +1,16 @@
 package pl.foltak.mybudget.server.entity;
 
+import java.io.Serializable;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -14,12 +18,21 @@ import lombok.Setter;
  *
  * @author Mariusz Foltak <mariusz@foltak.pl>
  */
-@RequiredArgsConstructor @NoArgsConstructor
+@Entity
 @EqualsAndHashCode
-public class Category {
+public class Category implements Serializable {
 
-    @Getter @Setter @NonNull private String name;
-    @Getter @Setter List<Category> subCategories;
+    @Id
+    private long id;
+
+    @Getter @Setter private String name;
+
+    @OneToMany
+    @JoinColumn(name = "parent_id")
+    List<Category> subCategories;
+
+    @OneToMany
+    @JoinColumn(name = "category_id")
     List<Transaction> transactions;
 
     /**
@@ -77,6 +90,15 @@ public class Category {
      */
     public boolean hasTransactions() {
         return !transactions.isEmpty();
+    }
+
+    /**
+     * Returns a list of subcategories.
+     *
+     * @return list of subcategories.
+     */
+    public List<Category> getSubCategories() {
+        return new LinkedList<>(subCategories);
     }
 
 }

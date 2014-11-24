@@ -1,8 +1,15 @@
 package pl.foltak.mybudget.server.entity;
 
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
 import lombok.NonNull;
 
 /**
@@ -10,10 +17,24 @@ import lombok.NonNull;
  *
  * @author Mariusz Foltak <mariusz@foltak.pl>
  */
-public class User {
+@Entity(name = "`user`")
+public class User implements Serializable {
 
+    @Id @Column @GeneratedValue private long id;
+
+    @Column private String username;
+    @Column private String passwordHash;
+
+    @OneToMany
+    @JoinColumn(name = "user_id")
     List<Category> categories;
+    
+    @OneToMany
+    @JoinColumn(name = "user_id")
     List<Account> accounts;
+    
+    @OneToMany
+    @JoinColumn(name = "user_id")
     List<Tag> tags;
 
     /**

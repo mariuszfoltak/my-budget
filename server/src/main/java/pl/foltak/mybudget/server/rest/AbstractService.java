@@ -1,9 +1,18 @@
 package pl.foltak.mybudget.server.rest;
 
+import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.NotFoundException;
 import pl.foltak.mybudget.server.entity.Account;
 import pl.foltak.mybudget.server.entity.Category;
 import pl.foltak.mybudget.server.entity.User;
+import pl.foltak.mybudget.server.security.AuthenticationFilter;
 
 /**
  *
@@ -12,13 +21,26 @@ import pl.foltak.mybudget.server.entity.User;
 public abstract class AbstractService {
 
     protected static final String CATEGORY_DOESNT_EXIST = "Category '%s' doesn't exist";
+    
+    @PersistenceContext
+    private EntityManager entityManager;
+    
     private User user;
+    
+    @HeaderParam(value = AuthenticationFilter.AUTHORIZATION_USERNAME)
+    private String username;
 
     /**
      * @return the user
      */
     protected User getUser() {
-        throw new UnsupportedOperationException("Not implemented yet.");
+        //TODO: Shold be loaded only on first call, and maybe can look clearer.
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<User> cq = cb.createQuery(User.class);
+        Root<User> qUser = cq.from(User.class);
+        cq.where(cb.equal(qUser.get("username"), username));
+        TypedQuery<User> query = entityManager.createQuery(cq);
+        return query.getSingleResult();
     }
 
     protected Category findMainCategory(String categoryName) throws NotFoundException {

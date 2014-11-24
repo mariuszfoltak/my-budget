@@ -1,8 +1,13 @@
 package pl.foltak.mybudget.server.entity;
 
+import java.io.Serializable;
 import java.util.Collections;
-import java.util.LinkedList;
+import java.util.Date;
 import java.util.List;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.ManyToMany;
+import lombok.Getter;
 import lombok.NonNull;
 
 /**
@@ -10,13 +15,15 @@ import lombok.NonNull;
  *
  * @author mariusz@foltak.pl
  */
-public class Transaction {
+@Entity
+public class Transaction implements Serializable {
 
-    List<Tag> tags;
-
-    public long getId() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+    @Id @Getter private Long id;
+    private String description;
+    private String amount;
+    private Date transactionDate;
+    
+    @ManyToMany List<Tag> tags;
 
     /**
      * Returns and unmodifiable list of tags that belongs to this objects.

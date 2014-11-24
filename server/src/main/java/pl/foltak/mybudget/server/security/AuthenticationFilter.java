@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package pl.foltak.mybudget.server.security;
 
 import java.io.IOException;
@@ -11,13 +6,14 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
 
 /**
+ * The authorization filter.
  *
- * @author mfoltak
+ * @author Mariusz Foltak <mariusz@foltak.pl>
  */
 public class AuthenticationFilter implements ContainerRequestFilter {
 
-    static final String AUTHORIZATION_PASSWORD = "Authorization-Password";
-    static final String AUTHORIZATION_USERNAME = "Authorization-User";
+    public static final String AUTHORIZATION_PASSWORD = "Authorization-Password";
+    public static final String AUTHORIZATION_USERNAME = "Authorization-User";
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {

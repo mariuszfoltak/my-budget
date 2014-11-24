@@ -1,14 +1,19 @@
-
 package pl.foltak.mybudget.server.entity;
+
+import java.io.Serializable;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import lombok.Getter;
 
 /**
  *
  * @author Mariusz Foltak <mariusz.foltak@coi.gov.pl>
  */
-public class Tag {
+@Entity
+public class Tag implements Serializable {
 
-    String getName() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
+    @Id
+    private Long id;
+
+    @Getter private String name;
 }

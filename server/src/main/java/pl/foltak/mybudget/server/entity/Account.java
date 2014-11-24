@@ -1,25 +1,28 @@
 package pl.foltak.mybudget.server.entity;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 
 /**
  * The account entity.
  *
  * @author Mariusz Foltak <mariusz@foltak.pl>
  */
-public class Account {
+@Entity
+public class Account implements Serializable {
 
-    List<Transaction> transactions;
-
-    public String getName() {
-        throw new UnsupportedOperationException("Not implemented yet");
-    }
-
-    public void setName(String BANK) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+    @Id private Long id;
+    @Setter @Getter private String name;
+    
+    @OneToMany @JoinColumn(name = "account_id") List<Transaction> transactions;
 
     /**
      * Return true if this account has transactions, otherwise return false.
