@@ -1,6 +1,5 @@
 package pl.foltak.mybudget.server.rest;
 
-import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
@@ -27,6 +26,7 @@ public abstract class AbstractService {
     
     private User user;
     
+//    TODO: Move AUTHORIZATION_USERNAME to more specific class
     @HeaderParam(value = AuthenticationFilter.AUTHORIZATION_USERNAME)
     private String username;
 
