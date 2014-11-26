@@ -17,7 +17,8 @@ import lombok.NonNull;
  *
  * @author Mariusz Foltak <mariusz@foltak.pl>
  */
-@Entity(name = "`user`")
+//TODO: Change table name
+@Entity(name = "users")
 public class User implements Serializable {
 
     @Id @Column @GeneratedValue private long id;

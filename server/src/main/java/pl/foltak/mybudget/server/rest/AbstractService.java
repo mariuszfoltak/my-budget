@@ -1,7 +1,8 @@
 package pl.foltak.mybudget.server.rest;
 
 import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceUnit;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -21,10 +22,8 @@ public abstract class AbstractService {
 
     protected static final String CATEGORY_DOESNT_EXIST = "Category '%s' doesn't exist";
     
-    @PersistenceContext
-    private EntityManager entityManager;
-    
-    private User user;
+    @PersistenceUnit
+    private EntityManagerFactory emf;
     
 //    TODO: Move AUTHORIZATION_USERNAME to more specific class
     @HeaderParam(value = AuthenticationFilter.AUTHORIZATION_USERNAME)
@@ -34,13 +33,16 @@ public abstract class AbstractService {
      * @return the user
      */
     protected User getUser() {
-        //TODO: Shold be loaded only on first call, and maybe can look clearer.
+//        TODO: Shold be loaded only on first call, and maybe can look clearer.
+//        TODO: User should be loaded once per request
+        EntityManager entityManager = emf.createEntityManager();
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<User> cq = cb.createQuery(User.class);
         Root<User> qUser = cq.from(User.class);
         cq.where(cb.equal(qUser.get("username"), username));
         TypedQuery<User> query = entityManager.createQuery(cq);
-        return query.getSingleResult();
+        final User singleResult = query.getSingleResult();
+        return singleResult;
     }
 
     protected Category findMainCategory(String categoryName) throws NotFoundException {
