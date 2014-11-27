@@ -10,6 +10,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
+import lombok.Getter;
 import lombok.NonNull;
 
 /**
@@ -24,7 +25,7 @@ public class User implements Serializable {
     @Id @Column @GeneratedValue private long id;
 
     @Column private String username;
-    @Column private String passwordHash;
+    @Getter @Column private String passwordHash;
 
     @OneToMany
     @JoinColumn(name = "user_id")
