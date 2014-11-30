@@ -12,7 +12,7 @@
     <version>0.0.1-SNAPSHOT</version>
     <packaging>war</packaging>
 
-    <name>server</name>
+    <name>My Budget - RESTService</name>
 
     <properties>
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>

@@ -73,4 +73,5 @@
             </build>
         </profile>
     </profiles>
+    <name>My Budget</name>
 </project>

@@ -15,18 +15,23 @@ import org.mindrot.jbcrypt.BCrypt;
 @LocalBean
 public class UserAuthenticator {
 
+    static final String SELECT_PASSWORD = "SELECT u.passwordHash FROM users AS u WHERE u.username = :username";
+
     @PersistenceContext
-    private EntityManager em;
+    EntityManager em;
 
     public boolean authenticate(String username, String password) {
         String passwordHash = getPasswordHashForUser(username);
+        if ("".equals(passwordHash)) {
+            return false;
+        }
         return BCrypt.checkpw(password, passwordHash);
     }
 
     String getPasswordHashForUser(String username) {
-        final String jpql = "SELECT u.passwordHash FROM users AS u WHERE u.username = :username";
         try {
-            return (String) em.createQuery(jpql).setParameter("username", username).getSingleResult();
+            return (String) em.createQuery(SELECT_PASSWORD).setParameter("username", username)
+                    .getSingleResult();
         } catch (NoResultException e) {
             return "";
         }

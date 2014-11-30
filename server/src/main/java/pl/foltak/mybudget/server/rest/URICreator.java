@@ -5,11 +5,14 @@ import pl.foltak.mybudget.server.entity.Transaction;
 
 /**
  *
- * @author mfoltak
+ * @author Mariusz Foltak <mariusz@foltak.pl>
  */
-public class URICreator {
+public final class URICreator {
 
     public static URI of(String accountName, Transaction transaction) {
         return URI.create("accounts/" + accountName + "/" + transaction.getId());
+    }
+
+    private URICreator() {
     }
 }
