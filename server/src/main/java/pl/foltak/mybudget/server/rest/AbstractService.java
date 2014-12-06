@@ -2,6 +2,7 @@ package pl.foltak.mybudget.server.rest;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityTransaction;
 import javax.persistence.PersistenceUnit;
 import javax.persistence.TypedQuery;
 import javax.ws.rs.HeaderParam;
@@ -17,16 +18,18 @@ import pl.foltak.mybudget.server.security.AuthenticationFilter;
  */
 public abstract class AbstractService {
 
-    private static final String ACCOUNT_DOESNT_EXIST = "Account '%s' doesn't exist";
     private static final String CATEGORY_DOESNT_EXIST = "Category '%s' doesn't exist";
     private static final String SELECT_USER = "SELECT u FROM users AS u WHERE u.username = :username";
+    protected static final String ACCOUNT_DOESNT_EXIST = "Account '%s' doesn't exist";
 
 //    TODO: Move AUTHORIZATION_USERNAME to more specific class
     @HeaderParam(value = AuthenticationFilter.AUTHORIZATION_USERNAME)
-    private String username;
+     String username;
     
     @PersistenceUnit
     EntityManagerFactory emf;
+    private EntityManager em;
+    private EntityTransaction tx;
     
     User user;
 
@@ -35,12 +38,18 @@ public abstract class AbstractService {
      */
     protected User getUser() {
         if (user == null) {
-            EntityManager em = emf.createEntityManager();
+            em = emf.createEntityManager();
+            tx = em.getTransaction();
             TypedQuery<User> query = em.createQuery(SELECT_USER, User.class);
             query.setParameter("username", username);
             user = query.getSingleResult();
         }
         return user;
+    }
+    
+    protected void closeEntityManager() {
+        tx.commit();
+        em.close();
     }
 
     protected Category findMainCategory(String categoryName) throws NotFoundException {

@@ -12,6 +12,10 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
+import pl.foltak.mybudget.server.dao.MyBudgetDaoLocal;
+import pl.foltak.mybudget.server.dao.exception.AccountAlreadyExistsException;
+import pl.foltak.mybudget.server.dao.exception.AccountCantBeRemovedException;
+import pl.foltak.mybudget.server.dao.exception.AccountNotFoundException;
 import pl.foltak.mybudget.server.entity.Account;
 import pl.foltak.mybudget.server.entity.User;
 import static pl.foltak.mybudget.server.test.TestUtils.expectedException;
@@ -25,6 +29,8 @@ public class AccountServiceTest {
 
     private static final String WALLET = "wallet";
     private static final String BANK = "bank";
+    private static final String USERNAME = "alibaba";
+    private static final String NONEXISTENT = "nonexistent";
 
     private AccountService instance;
     private User user;
@@ -34,11 +40,15 @@ public class AccountServiceTest {
     @Before
     public void setUp() {
         instance = spy(new AccountService());
+        instance.dao = mock(MyBudgetDaoLocal.class);
+        instance.username = USERNAME;
+        
         user = mock(User.class);
         walletAccount = mock(Account.class);
         bankAccount = mock(Account.class);
 
         doReturn(user).when(instance).getUser();
+        doNothing().when(instance).closeEntityManager();
         when(walletAccount.getName()).thenReturn(WALLET);
         when(user.findAccount(any())).thenReturn(Optional.ofNullable(null));
         when(user.findAccount(WALLET)).thenReturn(Optional.of(walletAccount));
@@ -46,7 +56,7 @@ public class AccountServiceTest {
     }
 
     /**
-     * When create account was called, service should return 201 Created
+     * When create account was called, service should return 201 Created.
      */
     @Test
     public void isOkStatusReturnedWhenAccountIsCreated() {
@@ -55,7 +65,7 @@ public class AccountServiceTest {
     }
 
     /**
-     * When we call create account, service should return location header
+     * When we call create account, service should return location header.
      */
     @Test
     public void isLocationHeaderReturnedWhenAccountIsCreated() {
@@ -65,26 +75,23 @@ public class AccountServiceTest {
     }
 
     /**
-     * When create account is called, service should add account to user
+     * When create account is called, service should add account to user.
      */
     @Test
-    public void isServiceAddAccountToUserWhenAccountIsCreated() {
+    public void isServiceAddAccountToUserWhenAccountIsCreated() throws AccountAlreadyExistsException {
         instance.createAccount(bankAccount);
-        verify(user, times(1)).addAccount(bankAccount);
+        verify(instance.dao).createAccount(USERNAME, bankAccount);
     }
 
     /**
      * When create account is called and the account already exist, service should return 409
      * Conflict and doesn't add account.
      */
-    @Test
-    public void isConflictExceptionThrownWhenTryToCreateAccountThatAlreadyExists() {
-        try {
-            instance.createAccount(walletAccount);
-            expectedException(ConflictException.class);
-        } catch (Exception e) {
-            verify(user, never()).addAccount(any());
-        }
+    @Test(expected = ConflictException.class)
+    public void isConflictExceptionThrownWhenTryToCreateAccountThatAlreadyExists() throws AccountAlreadyExistsException {
+        doThrow(AccountAlreadyExistsException.class).when(instance.dao)
+                .createAccount(USERNAME, walletAccount);
+        instance.createAccount(walletAccount);
     }
 
     /**
@@ -100,9 +107,11 @@ public class AccountServiceTest {
      * When modify account is called, service should update account entity.
      */
     @Test
-    public void isEntityUpdatedWhenAccountIsModified() {
+    public void isEntityUpdatedWhenAccountIsModified()
+            throws AccountAlreadyExistsException, AccountNotFoundException {
+        
         instance.modifyAccount(WALLET, bankAccount);
-        verify(walletAccount).setName(BANK);
+        verify(instance.dao).updateAccount(USERNAME, WALLET, bankAccount);
     }
 
     /**
@@ -110,22 +119,27 @@ public class AccountServiceTest {
      * Found.
      */
     @Test(expected = NotFoundException.class)
-    public void isNotFoundExceptionThrownWhenTryToModifyAccountThatDoesntExist() {
+    public void isNotFoundExceptionThrownWhenTryToModifyAccountThatDoesntExist() 
+            throws AccountAlreadyExistsException, AccountNotFoundException {
+        
+        doThrow(AccountNotFoundException.class).when(instance.dao)
+                .updateAccount(USERNAME, NONEXISTENT, walletAccount);
+        
         instance.modifyAccount(NONEXISTENT, walletAccount);
     }
 
     /**
      * When modify account is called and an account with new name already exist, service should
-     * return 409 Conflict and doesn't modify account.
+     * return 409 Conflict.
      */
-    @Test
-    public void isConflictExceptionThrownWhenTryToModifyAccountToExistingAccount() {
-        try {
-            instance.modifyAccount(WALLET, walletAccount);
-            expectedException(ConflictException.class);
-        } catch (ConflictException e) {
-            verify(walletAccount, never()).setName(any());
-        }
+    @Test (expected = ConflictException.class)
+    public void isConflictExceptionThrownWhenTryToModifyAccountToExistingAccount() 
+            throws AccountAlreadyExistsException, AccountNotFoundException {
+        
+        doThrow(AccountAlreadyExistsException.class).when(instance.dao)
+                .updateAccount(USERNAME, WALLET, walletAccount);
+        
+        instance.modifyAccount(WALLET, walletAccount);
     }
 
     /**
@@ -141,33 +155,36 @@ public class AccountServiceTest {
      * When remove account is called, service should remove entity.
      */
     @Test
-    public void isEntityRemovedWhenAccountIsRemoved() {
+    public void isEntityRemovedWhenAccountIsRemoved() throws AccountNotFoundException, AccountCantBeRemovedException {
         instance.removeAccount(WALLET);
-        verify(user).removeAccount(walletAccount);
+        verify(instance.dao).removeAccount(USERNAME, WALLET);
     }
 
     /**
      * When remove account is called and account doesn't exist, service should return 404 Not Found.
      */
     @Test(expected = NotFoundException.class)
-    public void isNotFoundExceptionThrownWhenTryToRemoveAccountThatDoesntExist() {
+    public void isNotFoundExceptionThrownWhenTryToRemoveAccountThatDoesntExist() 
+            throws AccountNotFoundException, AccountCantBeRemovedException {
+        
+        doThrow(AccountNotFoundException.class).when(instance.dao)
+                .removeAccount(USERNAME, NONEXISTENT);
+        
         instance.removeAccount(NONEXISTENT);
     }
-    private static final String NONEXISTENT = "nonexistent";
 
     /**
      * When remove account is called and the account has transactions, service should return 400 Bad
      * Request.
      */
-    @Test
-    public void isBadRequestExceptionThrownWhenTryToRemoveAccountThatHasTransactions() {
-        when(walletAccount.hasTransactions()).thenReturn(Boolean.TRUE);
-        try {
-            instance.removeAccount(WALLET);
-            expectedException(BadRequestException.class);
-        } catch (Exception e) {
-            verify(user, never()).removeAccount(any());
-        }
+    @Test (expected = BadRequestException.class)
+    public void isBadRequestExceptionThrownWhenTryToRemoveAccountThatHasTransactions() 
+            throws AccountNotFoundException, AccountCantBeRemovedException {
+        
+        doThrow(AccountCantBeRemovedException.class).when(instance.dao)
+                .removeAccount(USERNAME, WALLET);
+        
+        instance.removeAccount(WALLET);
     }
 
     /**
@@ -175,7 +192,6 @@ public class AccountServiceTest {
      */
     @Test
     public void isOkStatusReturnedWhenGetAccountsIsCalled() {
-        final HttpServletResponse httpServletResponse = mock(HttpServletResponse.class);
         Response response = instance.getAccounts();
         assertEquals("Incorrect status code", 200, response.getStatus());
     }

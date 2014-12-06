@@ -2,6 +2,8 @@ package pl.foltak.mybudget.server.rest;
 
 import java.net.URI;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -13,6 +15,10 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import pl.foltak.mybudget.server.dao.MyBudgetDaoLocal;
+import pl.foltak.mybudget.server.dao.exception.AccountAlreadyExistsException;
+import pl.foltak.mybudget.server.dao.exception.AccountCantBeRemovedException;
+import pl.foltak.mybudget.server.dao.exception.AccountNotFoundException;
 import pl.foltak.mybudget.server.dto.TransactionDTO;
 import pl.foltak.mybudget.server.entity.Account;
 import pl.foltak.mybudget.server.entity.Category;
@@ -31,30 +37,49 @@ public class AccountService extends AbstractService {
 
     private static final String ACCOUNT_HAS_TRANSACTIONS = "Account '%s' has transactions and cannot be removed";
     private static final String ACCOUNT_ALREADY_EXISTS = "Account '%s' already exists";
+    MyBudgetDaoLocal dao;
 
+    /**
+     * Creates new account.
+     * 
+     * @param account The account that should be created
+     * @throws ConflictException when account already exists
+     * @return 200 OK if an account is created or 409 Conflict when the account already exists
+     */
     @PUT
     @Path("/")
     public Response createAccount(Account account) {
-        throwConflictExceptionIfAccountAlreadyExists(account);
-        getUser().addAccount(account);
+        try {
+            dao.createAccount(username, account);
+        } catch (AccountAlreadyExistsException ex) {
+            throw new ConflictException(String.format(ACCOUNT_ALREADY_EXISTS, account.getName()));
+        }
         return Response.created(URI.create("account/" + account.getName())).build();
     }
 
     @POST
     @Path("/{account}")
     public Response modifyAccount(@PathParam("account") String accountName, Account account) {
-        Account currentAccount = findAccount(accountName);
-        throwConflictExceptionIfAccountAlreadyExists(account);
-        currentAccount.setName(account.getName());
+        try {
+            dao.updateAccount(username, accountName, account);
+        } catch (AccountAlreadyExistsException ex) {
+            throw new ConflictException(String.format(ACCOUNT_ALREADY_EXISTS, account.getName()));
+        } catch (AccountNotFoundException ex) {
+            throw new NotFoundException(String.format(ACCOUNT_DOESNT_EXIST, accountName));
+        }
         return Response.ok().build();
     }
 
     @DELETE
     @Path("/{account}")
     public Response removeAccount(@PathParam("account") String accountName) {
-        Account account = findAccount(accountName);
-        throwBadRequestExceptionIfAccountHasTransactions(account);
-        getUser().removeAccount(account);
+        try {
+            dao.removeAccount(username, accountName);
+        } catch (AccountNotFoundException ex) {
+            throw new NotFoundException(String.format(ACCOUNT_DOESNT_EXIST, accountName));
+        } catch (AccountCantBeRemovedException ex) {
+            throw new BadRequestException(String.format(ACCOUNT_HAS_TRANSACTIONS, accountName));
+        }
         return Response.ok().build();
     }
 
