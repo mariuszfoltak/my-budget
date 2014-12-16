@@ -2,9 +2,12 @@ package pl.foltak.mybudget.server.rest;
 
 import java.net.URI;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -12,6 +15,10 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import pl.foltak.mybudget.server.dao.MyBudgetDaoLocal;
+import pl.foltak.mybudget.server.dao.exception.CategoryAlreadyExistsException;
+import pl.foltak.mybudget.server.dao.exception.CategoryCantBeRemovedException;
+import pl.foltak.mybudget.server.dao.exception.CategoryNotFoundException;
 import pl.foltak.mybudget.server.entity.Category;
 import pl.foltak.mybudget.server.rest.exception.ConflictException;
 
@@ -27,11 +34,17 @@ public class CategoryService extends AbstractService {
     private static final String CATEGORY_HAS_TRANSACTIONS = "Category '%s' has transactions";
     private static final String CATEGORY_HAS_SUBCATEGORIES = "Category '%s' has subcategories";
 
+    MyBudgetDaoLocal dao;
+
     @PUT
     @Path("/")
     public Response addMainCategory(Category category) {
-        throwConflictExceptionIfMainCategoryAlreadyExists(category);
-        getUser().addCategory(category);
+        try {
+            dao.addCategory(username, category);
+        } catch (CategoryAlreadyExistsException ex) {
+            throw new ConflictException(String.format(CATEGORY_ALREADY_EXIST, category.getName()),
+                    ex);
+        }
         return Response.created(createURI(category)).build();
     }
 
@@ -39,18 +52,24 @@ public class CategoryService extends AbstractService {
     @Path("/{mainCategory}")
     public Response editMainCategory(@PathParam("mainCategory") String categoryName,
             Category category) {
-        Category currentCategory = findMainCategory(categoryName);
-        currentCategory.setName(category.getName());
+        try {
+            dao.modifyMainCategory(username, categoryName, category);
+        } catch (CategoryNotFoundException ex) {
+            throw new NotFoundException(String.format(CATEGORY_DOESNT_EXIST, categoryName), ex);
+        }
         return Response.ok().build();
     }
 
     @DELETE
     @Path("/{mainCategory}")
     public Response removeMainCategory(@PathParam("mainCategory") String categoryName) {
-        Category category = findMainCategory(categoryName);
-        checkIfCategoryHasSubCategories(category);
-        checkIfCategoryHasTransactions(category);
-        getUser().removeCategory(category);
+        try {
+            dao.removeMainCategory(username, categoryName);
+        } catch (CategoryNotFoundException ex) {
+            throw new NotFoundException(String.format(CATEGORY_DOESNT_EXIST, categoryName), ex);
+        } catch (CategoryCantBeRemovedException ex) {
+            throw new BadRequestException("Category can't be removed", ex);
+        }
         return Response.ok().build();
     }
 
@@ -58,9 +77,13 @@ public class CategoryService extends AbstractService {
     @Path("/{mainCategory}")
     public Response addSubCategory(@PathParam("mainCategory") String mainCategoryName,
             Category category) {
-        final Category mainCategory = findMainCategory(mainCategoryName);
-        throwConflictExceptionIfSubCategoryAlreadyExists(mainCategory, category);
-        mainCategory.addSubCategory(category);
+        try {
+            dao.addSubCategory(username, mainCategoryName, category);
+        } catch (CategoryNotFoundException ex) {
+            throw new NotFoundException(String.format(CATEGORY_DOESNT_EXIST, mainCategoryName), ex);
+        } catch (CategoryAlreadyExistsException ex) {
+            throw new ConflictException(String.format(CATEGORY_ALREADY_EXIST, category.getName()), ex);
+        }
         return Response.created(createURI(mainCategoryName, category.getName())).build();
     }
 
@@ -95,8 +118,7 @@ public class CategoryService extends AbstractService {
 
     @GET
     @Path("{mainCategory}")
-    public Response getSubcategories(@PathParam(value = "mainCategory")
-            String mainCategoryName) {
+    public Response getSubcategories(@PathParam(value = "mainCategory") String mainCategoryName) {
         final Category mainCategory = findMainCategory(mainCategoryName);
         final List<Category> subCategories = mainCategory.getSubCategories();
         return Response.ok(subCategories).build();

@@ -14,4 +14,7 @@ public class ConflictException extends ClientErrorException {
         super(message, Response.Status.CONFLICT);
     }
     
+    public ConflictException(String message, Throwable cause) {
+        super(message, Response.Status.CONFLICT, cause);
+    }
 }

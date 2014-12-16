@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.ejb.EJB;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -37,14 +38,16 @@ public class AccountService extends AbstractService {
 
     private static final String ACCOUNT_HAS_TRANSACTIONS = "Account '%s' has transactions and cannot be removed";
     private static final String ACCOUNT_ALREADY_EXISTS = "Account '%s' already exists";
+    
+    @EJB
     MyBudgetDaoLocal dao;
 
     /**
      * Creates new account.
      * 
      * @param account The account that should be created
-     * @throws ConflictException when account already exists
-     * @return 200 OK if an account is created or 409 Conflict when the account already exists
+     * @return 201 Created when the account was created or 409 Conflict when the account already
+     * exists
      */
     @PUT
     @Path("/")
@@ -57,6 +60,14 @@ public class AccountService extends AbstractService {
         return Response.created(URI.create("account/" + account.getName())).build();
     }
 
+    /**
+     * Modifies an account in user .
+     * 
+     * @param accountName the name of the account that should be modified
+     * @param account new account data
+     * @return 200 OK when an account was modified, 404 Not Found when the account doesn't exist and
+     * 409 Conflict when an account with new name already exists
+     */
     @POST
     @Path("/{account}")
     public Response modifyAccount(@PathParam("account") String accountName, Account account) {
@@ -70,6 +81,12 @@ public class AccountService extends AbstractService {
         return Response.ok().build();
     }
 
+    /**
+     * Removes an account from user accounts.
+     * 
+     * @param accountName the name of account that should be removed.
+     * @return 200 OK when the account was removed or 404 Not Found when the account doesn't exist.
+     */
     @DELETE
     @Path("/{account}")
     public Response removeAccount(@PathParam("account") String accountName) {
@@ -83,10 +100,15 @@ public class AccountService extends AbstractService {
         return Response.ok().build();
     }
 
+    /**
+     * Returns list of accounts belongs to the user.
+     * 
+     * @return list of accounts
+     */
     @GET
     @Path("/")
     public Response getAccounts() {
-        final List<Account> accounts = getUser().getAccounts();
+        final List<Account> accounts = dao.getAccounts(username);
         return Response.ok(accounts).build();
     }
 

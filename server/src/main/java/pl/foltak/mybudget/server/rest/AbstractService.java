@@ -18,7 +18,7 @@ import pl.foltak.mybudget.server.security.AuthenticationFilter;
  */
 public abstract class AbstractService {
 
-    private static final String CATEGORY_DOESNT_EXIST = "Category '%s' doesn't exist";
+    protected static final String CATEGORY_DOESNT_EXIST = "Category '%s' doesn't exist";
     private static final String SELECT_USER = "SELECT u FROM users AS u WHERE u.username = :username";
     protected static final String ACCOUNT_DOESNT_EXIST = "Account '%s' doesn't exist";
 

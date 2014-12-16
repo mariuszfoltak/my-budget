@@ -1,17 +1,19 @@
 package pl.foltak.mybudget.server.rest;
 
+import pl.foltak.mybudget.server.dao.exception.CategoryAlreadyExistsException;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
-import static org.mockito.AdditionalMatchers.not;
 import static org.mockito.Mockito.*;
+import pl.foltak.mybudget.server.dao.MyBudgetDaoLocal;
+import pl.foltak.mybudget.server.dao.exception.CategoryCantBeRemovedException;
+import pl.foltak.mybudget.server.dao.exception.CategoryNotFoundException;
 import pl.foltak.mybudget.server.entity.Category;
 import pl.foltak.mybudget.server.entity.User;
 import static pl.foltak.mybudget.server.test.TestUtils.expectedException;
@@ -26,6 +28,8 @@ public class CategoryServiceTest {
     private static final String FOOD = "food";
     private static final String CANDY = "candy";
     private static final String HOUSE = "house";
+    private static final String USERNAME = "alibaba";
+    private static final String NONEXISTENT = "nonexistent";
 
     private CategoryService instance;
     private User user;
@@ -36,6 +40,9 @@ public class CategoryServiceTest {
     @Before
     public void setUp() {
         instance = spy(new CategoryService());
+        instance.dao = mock(MyBudgetDaoLocal.class);
+        instance.username = USERNAME;
+
         user = mock(User.class);
         mainCategory = mock(Category.class);
         subCategory = mock(Category.class);
@@ -51,132 +58,206 @@ public class CategoryServiceTest {
         when(houseCategory.getName()).thenReturn(HOUSE);
     }
 
+    /**
+     * Method addMainCategory should return a 201 Created status after adds a category.
+     */
     @Test
-    public void testAddingMainCategoryStatusCodeIsCreated() {
+    public void isCreatedStatusReturnedWhenAddingMainCategory() {
         Response response = instance.addMainCategory(mock(Category.class));
         assertEquals("Status code isn't equal to 201,", 201, response.getStatus());
     }
 
+    /**
+     * Method addMainCategory should return a location header after adds a category.
+     */
     @Test
-    public void testAddingMainCategoryReturnLocationHeader() {
-        String car = "car";
-        final Category category = mock(Category.class);
-        when(category.getName()).thenReturn(car);
-        Response response = instance.addMainCategory(category);
-        assertEquals("Location header isn't equal to new category,", createURI(car),
+    public void isLocationHeaderReturnedWhenAddingMainCategory() {
+        Response response = instance.addMainCategory(houseCategory);
+        assertEquals("Location header isn't equal to new category,", createURI(HOUSE),
                 response.getLocation());
     }
 
+    /**
+     * Method addMainCategory should call MyBudgetDAO
+     *
+     * @throws pl.foltak.mybudget.server.dao.exception.CategoryAlreadyExistsException
+     */
     @Test
-    public void testAddingMainCategoryAddCategoryToUser() {
-        final String car = "car";
-        final Category category = mock(Category.class);
-        when(category.getName()).thenReturn(car);
-        instance.addMainCategory(category);
-
-        verify(user).addCategory(category);
+    public void isMyBudgetDaoCalledWhenAddingMainCategory()
+            throws CategoryAlreadyExistsException {
+        instance.addMainCategory(houseCategory);
+        verify(instance.dao).addCategory(USERNAME, houseCategory);
     }
 
-    @Test
-    public void testAddingExistingMainCategory() {
-        try {
-            instance.addMainCategory(mainCategory);
-            expectedException(ConflictException.class);
-        } catch (ConflictException e) {
-            verify(user, never()).addCategory(any(Category.class));
-        }
+    /**
+     * Method addMainCategory should throw ConflictException when category with given name already
+     * exists.
+     *
+     * @throws pl.foltak.mybudget.server.dao.exception.CategoryAlreadyExistsException
+     */
+    @Test(expected = ConflictException.class)
+    public void isConflictExceptionThrownWhenAddingExistingMainCategory()
+            throws CategoryAlreadyExistsException {
+        doThrow(CategoryAlreadyExistsException.class).when(instance.dao)
+                .addCategory(USERNAME, mainCategory);
+        instance.addMainCategory(mainCategory);
     }
 
+    /**
+     * Method removeMainCategory should return 200 OK status after removed category.
+     */
     @Test
-    public void testReturnOkStatusCodeWhenRemovingExistingMainCategory() {
+    public void isOkStatusReturnedWhenRemovingExistingMainCategory() {
+
         Response response = instance.removeMainCategory(FOOD);
         assertEquals("Status code isn't equal to 200 OK", 200, response.getStatus());
     }
 
+    /**
+     * Method removeMainCategory should call MyBudgetDao.
+     *
+     * @throws pl.foltak.mybudget.server.dao.exception.CategoryNotFoundException
+     * @throws pl.foltak.mybudget.server.dao.exception.CategoryCantBeRemovedException
+     */
     @Test
-    public void testRemovingCategoryFromUserWhenRemovingExistingMainCategory() {
+    public void isDaoCalledWhenRemovingExistingMainCategory()
+            throws CategoryNotFoundException, CategoryCantBeRemovedException {
+
         instance.removeMainCategory(FOOD);
-        verify(user, times(1)).removeCategory(mainCategory);
+        verify(instance.dao).removeMainCategory(USERNAME, FOOD);
     }
 
+    /**
+     * Method removeMainCategory should throw NotFoundException when the category doesn't exist.
+     *
+     * @throws pl.foltak.mybudget.server.dao.exception.CategoryNotFoundException
+     * @throws pl.foltak.mybudget.server.dao.exception.CategoryCantBeRemovedException
+     */
     @Test(expected = NotFoundException.class)
-    public void testReturnNotFoundExceptionWhenRemovingNonexistingMainCategory() {
-        instance.removeMainCategory("nonexistent");
+    public void isNotFoundExceptionThrownWhenRemovingNonexistingMainCategory()
+            throws CategoryNotFoundException, CategoryCantBeRemovedException {
+
+        doThrow(CategoryNotFoundException.class).when(instance.dao)
+                .removeMainCategory(USERNAME, NONEXISTENT);
+        instance.removeMainCategory(NONEXISTENT);
     }
 
-    @Test
-    public void testReturnBadRequestWhenRemovingMainCategoryWithSubcategories() {
-        when(mainCategory.hasSubCategories()).thenReturn(true);
-        try {
-            instance.removeMainCategory(FOOD);
-            expectedException(BadRequestException.class);
-        } catch (BadRequestException e) {
-            verify(user, never()).removeCategory(any());
-        }
+    /**
+     * Method removeMainCategory should throw BadRequestException when the category can't be
+     * removed.
+     *
+     * @throws CategoryNotFoundException
+     * @throws CategoryCantBeRemovedException
+     */
+    @Test(expected = BadRequestException.class)
+    public void isBadRequestExceptionThrownWhenRemovingMainCategoryWithSubcategories()
+            throws CategoryNotFoundException, CategoryCantBeRemovedException {
+
+        doThrow(CategoryCantBeRemovedException.class).when(instance.dao)
+                .removeMainCategory(USERNAME, FOOD);
+
+        instance.removeMainCategory(FOOD);
     }
 
+    /**
+     * Method editMainCategory should call MyBudgetDao.
+     *
+     * @throws CategoryNotFoundException
+     */
     @Test
-    public void testReturnBadRequestWhenRemovingMainCategoryWithTransactions() {
-        when(mainCategory.hasTransactions()).thenReturn(true);
-        try {
-            instance.removeMainCategory(FOOD);
-            expectedException(BadRequestException.class);
-        } catch (BadRequestException e) {
-            verify(user, never()).removeCategory(any());
-        }
-    }
-
-    @Test
-    public void testUpdatingEntityWhenModifyMainCategory() {
+    public void isDaoCalledWhenModifyMainCategory() throws CategoryNotFoundException {
         instance.editMainCategory(FOOD, houseCategory);
-        verify(mainCategory, times(1)).setName(HOUSE);
+        verify(instance.dao).modifyMainCategory(USERNAME, FOOD, houseCategory);
     }
 
+    /**
+     * Method editMainCategory should return 200 OK after edited a category.
+     */
     @Test
-    public void testReturnOkStatusWhenModifyMainCategory() {
+    public void isOkStatusReturnedWhenModifyMainCategory() {
         Response response = instance.editMainCategory(FOOD, houseCategory);
         assertEquals("Status code isn't equal to 200 OK", 200, response.getStatus());
     }
 
+    /**
+     * Method editMainCategory should throw NotFoundException when a category with given name
+     * doesn't exist.
+     *
+     * @throws CategoryNotFoundException
+     */
     @Test(expected = NotFoundException.class)
-    public void testReturnNotFoundWhenModifingNonexistingMainCategory() {
-        instance.editMainCategory("nonexistent", houseCategory);
+    public void isNotFoundExceptionThrownWhenModifingNonexistingMainCategory()
+            throws CategoryNotFoundException {
+
+        doThrow(CategoryNotFoundException.class).when(instance.dao)
+                .modifyMainCategory(any(), any(), any());
+        instance.editMainCategory(NONEXISTENT, subCategory);
     }
 
+    /**
+     * Method addSubCategory should call MyBudgetDao.
+     * 
+     * @throws CategoryNotFoundException
+     * @throws CategoryAlreadyExistsException 
+     */
     @Test
-    public void testAddSecondLevelCategoryAddCategoryToParentCategory() {
+    public void isDaoCalledWhenAddingSubCategory() 
+            throws CategoryNotFoundException, CategoryAlreadyExistsException {
+        
         instance.addSubCategory(FOOD, houseCategory);
-        verify(mainCategory).addSubCategory(houseCategory);
+        verify(instance.dao).addSubCategory(USERNAME, FOOD, houseCategory);
     }
 
+    /**
+     * Method addSubCategory should return a 201 Created status if a category was added.
+     */
     @Test
-    public void testAddSecondLevelCategoryReturnCreatedStatusCode() {
+    public void isCreatedStatusReturnedWhenAddingSubCategory() {
         Response response = instance.addSubCategory(FOOD, houseCategory);
         assertEquals("Status code isn't equal to 201", 201, response.getStatus());
     }
 
+    /**
+     * Method addSubCategory should return a location header with the location of new category.
+     */
     @Test
-    public void testReturnLocationHeaderWhenAddingSubcategory() {
+    public void isLocationHeaderReturnedWhenAddingSubcategory() {
         Response response = instance.addSubCategory(FOOD, houseCategory);
         assertEquals("Location header isn't equal to new category", createURI(FOOD, HOUSE),
                 response.getLocation());
     }
 
+    /**
+     * Method addSubCategory should throw NotFoundException when main category doesn't exist.
+     * 
+     * @throws CategoryNotFoundException
+     * @throws CategoryAlreadyExistsException 
+     */
     @Test(expected = NotFoundException.class)
-    public void testThrowNotFoundWhenCreatingSubcategoryAndMainCategoryDoesntExist() {
-        instance.addSubCategory("nonexistent", houseCategory);
+    public void isNotFoundExceptionThrownWhenCreatingSubcategoryButMainCategoryDoesntExist()
+            throws CategoryNotFoundException, CategoryAlreadyExistsException {
+
+        doThrow(CategoryNotFoundException.class).when(instance.dao)
+                .addSubCategory(any(), any(), any());
+        instance.addSubCategory(NONEXISTENT, houseCategory);
     }
 
-    @Test
-    public void testThrowConflictWhenCreatingSubcategoryAlreadyExist() {
-        try {
-            instance.addSubCategory(FOOD, subCategory);
-            expectedException(ConflictException.class);
-        } catch (Exception e) {
-            verify(mainCategory, never()).addSubCategory(any());
-        }
+    /**
+     * Method addSubCategory should throw ConflictException when sub category already exists.
+     * 
+     * @throws CategoryNotFoundException
+     * @throws CategoryAlreadyExistsException 
+     */
+    @Test(expected = ConflictException.class)
+    public void isConflictExceptionThrownWhenAddingSubCategoryThatAlreadyExist() 
+            throws CategoryNotFoundException, CategoryAlreadyExistsException {
+        
+        doThrow(CategoryAlreadyExistsException.class).when(instance.dao)
+                .addSubCategory(any(), any(), any());
+        instance.addSubCategory(FOOD, subCategory);
     }
 
+    
     @Test
     public void testUpdateEntityWhenRemovingSubcategory() {
         instance.removeSubCategory(FOOD, CANDY);
@@ -191,13 +272,13 @@ public class CategoryServiceTest {
 
     @Test(expected = NotFoundException.class)
     public void testThrowNotFoundWhenRemovingSubcategoryAndParentCategoryDoesntExist() {
-        instance.removeSubCategory("nonexistent", CANDY);
+        instance.removeSubCategory(NONEXISTENT, CANDY);
     }
 
     @Test
     public void testThrowNotFoundExceptionWhenRemovingSubcategoryThatDoesntExist() {
         try {
-            instance.removeSubCategory(FOOD, "nonexistent");
+            instance.removeSubCategory(FOOD, NONEXISTENT);
             expectedException(NotFoundException.class);
         } catch (NotFoundException e) {
             verify(mainCategory, never()).removeSubCategory(any());
@@ -230,12 +311,12 @@ public class CategoryServiceTest {
 
     @Test(expected = NotFoundException.class)
     public void testThrowNotFoundExceptionWhenMainCategoryDoesntExist() {
-        instance.editSubCategory("nonexistent", CANDY, houseCategory);
+        instance.editSubCategory(NONEXISTENT, CANDY, houseCategory);
     }
 
     @Test(expected = NotFoundException.class)
     public void testThrowNotFoundExceptionWhenSubCategoryDoesntExist() {
-        instance.editSubCategory(FOOD, "nonexistent", houseCategory);
+        instance.editSubCategory(FOOD, NONEXISTENT, houseCategory);
     }
 
     @Test
@@ -280,7 +361,7 @@ public class CategoryServiceTest {
 
     @Test(expected = NotFoundException.class)
     public void testThrowNotFoundExceptionWhenGettingSubcategoriesFromCategoryThatDoesntExist() {
-        instance.getSubcategories("nonexistent");
+        instance.getSubcategories(NONEXISTENT);
     }
 
     private static URI createURI(String firstLevelCategory, String secondLevelCategory) {

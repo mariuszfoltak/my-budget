@@ -3,8 +3,6 @@ package pl.foltak.mybudget.server.rest;
 import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
@@ -17,8 +15,6 @@ import pl.foltak.mybudget.server.dao.exception.AccountAlreadyExistsException;
 import pl.foltak.mybudget.server.dao.exception.AccountCantBeRemovedException;
 import pl.foltak.mybudget.server.dao.exception.AccountNotFoundException;
 import pl.foltak.mybudget.server.entity.Account;
-import pl.foltak.mybudget.server.entity.User;
-import static pl.foltak.mybudget.server.test.TestUtils.expectedException;
 import pl.foltak.mybudget.server.rest.exception.ConflictException;
 
 /**
@@ -33,25 +29,19 @@ public class AccountServiceTest {
     private static final String NONEXISTENT = "nonexistent";
 
     private AccountService instance;
-    private User user;
     private Account walletAccount;
     private Account bankAccount;
 
     @Before
     public void setUp() {
-        instance = spy(new AccountService());
+        instance = new AccountService();
         instance.dao = mock(MyBudgetDaoLocal.class);
         instance.username = USERNAME;
         
-        user = mock(User.class);
         walletAccount = mock(Account.class);
         bankAccount = mock(Account.class);
 
-        doReturn(user).when(instance).getUser();
-        doNothing().when(instance).closeEntityManager();
         when(walletAccount.getName()).thenReturn(WALLET);
-        when(user.findAccount(any())).thenReturn(Optional.ofNullable(null));
-        when(user.findAccount(WALLET)).thenReturn(Optional.of(walletAccount));
         when(bankAccount.getName()).thenReturn(BANK);
     }
 
@@ -78,7 +68,8 @@ public class AccountServiceTest {
      * When create account is called, service should add account to user.
      */
     @Test
-    public void isServiceAddAccountToUserWhenAccountIsCreated() throws AccountAlreadyExistsException {
+    public void isServiceAddAccountToUserWhenAccountIsCreated() 
+            throws AccountAlreadyExistsException {
         instance.createAccount(bankAccount);
         verify(instance.dao).createAccount(USERNAME, bankAccount);
     }
@@ -88,7 +79,8 @@ public class AccountServiceTest {
      * Conflict and doesn't add account.
      */
     @Test(expected = ConflictException.class)
-    public void isConflictExceptionThrownWhenTryToCreateAccountThatAlreadyExists() throws AccountAlreadyExistsException {
+    public void isConflictExceptionThrownWhenTryToCreateAccountThatAlreadyExists() 
+            throws AccountAlreadyExistsException {
         doThrow(AccountAlreadyExistsException.class).when(instance.dao)
                 .createAccount(USERNAME, walletAccount);
         instance.createAccount(walletAccount);
@@ -204,7 +196,7 @@ public class AccountServiceTest {
         List<Account> accounts = new LinkedList<>();
         accounts.add(bankAccount);
         accounts.add(walletAccount);
-        when(user.getAccounts()).thenReturn(accounts);
+        when(instance.dao.getAccounts(USERNAME)).thenReturn(accounts);
         List<Account> result = (List<Account>) instance.getAccounts().getEntity();
         assertEquals("Incorrect account list", accounts, result);
     }
