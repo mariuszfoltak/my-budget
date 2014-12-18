@@ -14,4 +14,4 @@ jndi-name=java:/jboss/datasources/mybudgetDS,\
 enabled=true,\
 validate-on-match=true,\
 valid-connection-checker-class-name=org.jboss.jca.adapters.jdbc.extensions.mysql.MySQLValidConnectionChecker,\
-exception-sorter-class-name=org.jboss.jca.adapters.jdbc.extensions.mysql.MySQLExceptionSorter)
+exception-sorter-class-name=org.jboss.jca.adapters.jdbc.extensions.mysql.MySQLExceptionSorter)"
