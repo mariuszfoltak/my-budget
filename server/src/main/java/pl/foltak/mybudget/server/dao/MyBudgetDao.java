@@ -125,6 +125,29 @@ public class MyBudgetDao implements MyBudgetDaoLocal {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    @Override
+    public void removeSubCategory(String USERNAME, String FOOD, String CANDY) throws
+            CategoryNotFoundException, CategoryCantBeRemovedException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void editSubCategory(String USERNAME, String FOOD, String CANDY, Category houseCategory) throws
+            CategoryNotFoundException, CategoryAlreadyExistsException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public List<Category> getAllCategories(String username) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public List<Category> getSubCategories(String username, String mainCategory) throws
+            CategoryNotFoundException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
     User getUserByName(String username) {
         TypedQuery<User> query = em.createQuery(SELECT_USER, User.class);
         query.setParameter("username", username);

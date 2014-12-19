@@ -16,7 +16,6 @@ import pl.foltak.mybudget.server.dao.exception.CategoryCantBeRemovedException;
 import pl.foltak.mybudget.server.dao.exception.CategoryNotFoundException;
 import pl.foltak.mybudget.server.entity.Category;
 import pl.foltak.mybudget.server.entity.User;
-import static pl.foltak.mybudget.server.test.TestUtils.expectedException;
 import pl.foltak.mybudget.server.rest.exception.ConflictException;
 
 /**
@@ -196,14 +195,14 @@ public class CategoryServiceTest {
 
     /**
      * Method addSubCategory should call MyBudgetDao.
-     * 
+     *
      * @throws CategoryNotFoundException
-     * @throws CategoryAlreadyExistsException 
+     * @throws CategoryAlreadyExistsException
      */
     @Test
-    public void isDaoCalledWhenAddingSubCategory() 
+    public void isDaoCalledWhenAddingSubCategory()
             throws CategoryNotFoundException, CategoryAlreadyExistsException {
-        
+
         instance.addSubCategory(FOOD, houseCategory);
         verify(instance.dao).addSubCategory(USERNAME, FOOD, houseCategory);
     }
@@ -229,9 +228,9 @@ public class CategoryServiceTest {
 
     /**
      * Method addSubCategory should throw NotFoundException when main category doesn't exist.
-     * 
+     *
      * @throws CategoryNotFoundException
-     * @throws CategoryAlreadyExistsException 
+     * @throws CategoryAlreadyExistsException
      */
     @Test(expected = NotFoundException.class)
     public void isNotFoundExceptionThrownWhenCreatingSubcategoryButMainCategoryDoesntExist()
@@ -244,123 +243,179 @@ public class CategoryServiceTest {
 
     /**
      * Method addSubCategory should throw ConflictException when sub category already exists.
-     * 
+     *
      * @throws CategoryNotFoundException
-     * @throws CategoryAlreadyExistsException 
+     * @throws CategoryAlreadyExistsException
      */
     @Test(expected = ConflictException.class)
-    public void isConflictExceptionThrownWhenAddingSubCategoryThatAlreadyExist() 
+    public void isConflictExceptionThrownWhenAddingSubCategoryThatAlreadyExist()
             throws CategoryNotFoundException, CategoryAlreadyExistsException {
-        
+
         doThrow(CategoryAlreadyExistsException.class).when(instance.dao)
                 .addSubCategory(any(), any(), any());
         instance.addSubCategory(FOOD, subCategory);
     }
 
-    
+    /**
+     * Method removeSubCategory should call MyBudgetDao.
+     *
+     * @throws CategoryNotFoundException
+     * @throws CategoryCantBeRemovedException
+     */
     @Test
-    public void testUpdateEntityWhenRemovingSubcategory() {
+    public void isDaoCalledWhenRemovingSubCategory()
+            throws CategoryNotFoundException, CategoryCantBeRemovedException {
+
         instance.removeSubCategory(FOOD, CANDY);
-        verify(mainCategory).removeSubCategory(subCategory);
+        verify(instance.dao).removeSubCategory(USERNAME, FOOD, CANDY);
     }
 
+    /**
+     * Method removeSubCategory should return status 200 OK, after remove sub category.
+     */
     @Test
-    public void testReturnOkStatusWhenRemovingSubcategory() {
+    public void isOkStatusReturnedAfterRemovingSubCategory() {
         Response response = instance.removeSubCategory(FOOD, CANDY);
         assertEquals("Status code isn't equal to 200 OK", 200, response.getStatus());
     }
 
+    /**
+     * Method removeSubCategory should throw NotFoundException when category doesn't exist.
+     *
+     * @throws CategoryNotFoundException
+     * @throws CategoryCantBeRemovedException
+     */
     @Test(expected = NotFoundException.class)
-    public void testThrowNotFoundWhenRemovingSubcategoryAndParentCategoryDoesntExist() {
+    public void testThrowNotFoundWhenRemovingSubcategoryAndParentCategoryDoesntExist()
+            throws CategoryNotFoundException, CategoryCantBeRemovedException {
+
+        doThrow(CategoryNotFoundException.class).when(instance.dao)
+                .removeSubCategory(any(), any(), any());
         instance.removeSubCategory(NONEXISTENT, CANDY);
     }
 
-    @Test
-    public void testThrowNotFoundExceptionWhenRemovingSubcategoryThatDoesntExist() {
-        try {
-            instance.removeSubCategory(FOOD, NONEXISTENT);
-            expectedException(NotFoundException.class);
-        } catch (NotFoundException e) {
-            verify(mainCategory, never()).removeSubCategory(any());
-        }
+    /**
+     * Method removeSubCategory should throw BadRequestException when category can't be removed.
+     *
+     * @throws CategoryNotFoundException
+     * @throws CategoryCantBeRemovedException
+     */
+    @Test(expected = BadRequestException.class)
+    public void testThrowBadRequestExceptionWhenRemovingSubcategoryThatHasTransactions()
+            throws CategoryNotFoundException, CategoryCantBeRemovedException {
 
+        doThrow(CategoryCantBeRemovedException.class).when(instance.dao)
+                .removeSubCategory(any(), any(), any());
+        instance.removeSubCategory(FOOD, CANDY);
     }
 
+    /**
+     * Method editSubCategory should return 200 OK status after update category.
+     */
     @Test
-    public void testThrowBadRequestExceptionWhenRemovingSubcategoryThatHasTransactions() {
-        when(subCategory.hasTransactions()).thenReturn(Boolean.TRUE);
-        try {
-            instance.removeSubCategory(FOOD, CANDY);
-            expectedException(BadRequestException.class);
-        } catch (Exception e) {
-            verify(mainCategory, never()).removeSubCategory(any());
-        }
-    }
-
-    @Test
-    public void testReturnOkStatusWhenModifingSubcategory() {
+    public void isOkStatusReturnedWhenModifingSubCategory() {
         Response response = instance.editSubCategory(FOOD, CANDY, houseCategory);
         assertEquals("Status code isn't equal to 200 OK", 200, response.getStatus());
     }
 
+    /**
+     * Method editSubCategory should call MyBudgetDao.
+     *
+     * @throws CategoryNotFoundException
+     * @throws CategoryAlreadyExistsException
+     */
     @Test
-    public void testUpdateEntityWhenModifingSubcategory() {
+    public void isDaoCalledWhenModifingSubcategory() 
+            throws CategoryNotFoundException, CategoryAlreadyExistsException {
+        
         instance.editSubCategory(FOOD, CANDY, houseCategory);
-        verify(subCategory, times(1)).setName(HOUSE);
+        verify(instance.dao).editSubCategory(USERNAME, FOOD, CANDY, houseCategory);
     }
 
+    /**
+     * Method editSubCategory should throw NotFoundException when a category doesn't exist.
+     *
+     * @throws CategoryNotFoundException
+     * @throws CategoryAlreadyExistsException
+     */
     @Test(expected = NotFoundException.class)
-    public void testThrowNotFoundExceptionWhenMainCategoryDoesntExist() {
+    public void isNotFoundExceptionThrownWhenMainCategoryDoesntExist()
+            throws CategoryNotFoundException, CategoryAlreadyExistsException {
+
+        doThrow(CategoryNotFoundException.class).when(instance.dao)
+                .editSubCategory(any(), any(), any(), any());
         instance.editSubCategory(NONEXISTENT, CANDY, houseCategory);
     }
 
-    @Test(expected = NotFoundException.class)
-    public void testThrowNotFoundExceptionWhenSubCategoryDoesntExist() {
-        instance.editSubCategory(FOOD, NONEXISTENT, houseCategory);
+    /**
+     * Method editSubCategory should throw ConflictException when a category with given name already exists.
+     * 
+     * @throws CategoryNotFoundException
+     * @throws CategoryAlreadyExistsException
+     */
+    @Test(expected = ConflictException.class)
+    public void isConflictExceptionThrownWhenSubCategoryWithNewNameAlreadyExist() 
+            throws CategoryNotFoundException, CategoryAlreadyExistsException {
+        
+        doThrow(CategoryAlreadyExistsException.class).when(instance.dao)
+                .editSubCategory(any(), any(), any(), any());
+        instance.editSubCategory(FOOD, CANDY, subCategory);
     }
 
+    /**
+     * Method getAllCategories should return 200 OK status.
+     */
     @Test
-    public void testThrowConflictExceptionWhenSubCategoryWithNewNameAlreadyExist() {
-        when(mainCategory.findSubCategory(CANDY)).thenReturn(Optional.of(subCategory));
-        when(subCategory.getName()).thenReturn(CANDY);
-        try {
-            instance.editSubCategory(FOOD, CANDY, subCategory);
-            expectedException(ConflictException.class);
-        } catch (ConflictException e) {
-            verify(subCategory, never()).setName(any());
-        }
-    }
-
-    @Test
-    public void testReturnOkStatusWhenGettingAllCategories() {
+    public void isOkStatusReturnedWhenGettingAllCategories() {
         int statusCode = instance.getAllCategories().getStatus();
         assertEquals("Incorrect status code", 200, statusCode);
     }
 
+    /**
+     * Method getAllCategories should return list of categories.
+     */
     @Test
-    public void testReturnCategoriesListWhenGettingAllCategories() {
+    public void isCategoriesListReturnedWhenGettingAllCategories() {
         List<Category> categories = mock(List.class);
-        when(user.getCategories()).thenReturn(categories);
+        when(instance.dao.getAllCategories(USERNAME)).thenReturn(categories);
         List<Category> result = (List<Category>) instance.getAllCategories().getEntity();
         assertEquals("List of categories it's not equals", categories, result);
     }
 
+    /**
+     * Method getSubCategories should return 200 OK status.
+     */
     @Test
-    public void testReturnOkStatusWhenGettingSubcategories() {
+    public void isOkStatusReturnedWhenGettingSubCategories() {
         final int statusCode = instance.getSubcategories(FOOD).getStatus();
         assertEquals("Incorrect status code", 200, statusCode);
     }
 
+    /**
+     * Method getSubCategories should return list of sub categories.
+     * 
+     * @throws CategoryNotFoundException
+     */
     @Test
-    public void testReturnCategoriesListWhenGettingSubcategories() {
+    public void isSubCategoriesListReturnedWhenGettingSubCategories() 
+            throws CategoryNotFoundException {
         List<Category> categories = mock(List.class);
-        when(mainCategory.getSubCategories()).thenReturn(categories);
+        when(instance.dao.getSubCategories(USERNAME, FOOD)).thenReturn(categories);
         List<Category> result = (List<Category>) instance.getSubcategories(FOOD).getEntity();
         assertEquals("List of categories it's not equals", categories, result);
     }
 
+    /**
+     * Method getSubCategories should throw NotFoundException
+     * 
+     * @throws CategoryNotFoundException
+     */
     @Test(expected = NotFoundException.class)
-    public void testThrowNotFoundExceptionWhenGettingSubcategoriesFromCategoryThatDoesntExist() {
+    public void isNotFoundExceptionThrownWhenGettingSubCategoriesFromCategoryThatDoesntExist() 
+            throws CategoryNotFoundException {
+        
+        doThrow(CategoryNotFoundException.class).when(instance.dao)
+                .getSubCategories(any(), any());
         instance.getSubcategories(NONEXISTENT);
     }
 

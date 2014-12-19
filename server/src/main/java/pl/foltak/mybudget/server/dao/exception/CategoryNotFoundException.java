@@ -9,5 +9,9 @@ public class CategoryNotFoundException extends Exception {
     public CategoryNotFoundException(String message, Throwable cause) {
         super(message, cause);
     }
+
+    public String getCategoryName() {
+        return null;
+    }
     
 }

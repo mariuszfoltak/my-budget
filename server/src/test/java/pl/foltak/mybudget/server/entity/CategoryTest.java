@@ -3,14 +3,11 @@ package pl.foltak.mybudget.server.entity;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Test of Category entity.
@@ -120,6 +117,13 @@ public class CategoryTest {
     public void isNullPointerExceptionThrownWhenAddTransactionWithNullParamIsCalled() {
         instance.transactions = mock(List.class);
         instance.addTransaction(null);
+    }
+    
+    @Test
+    public void testSettersAndGetters() {
+        final String name = "test";
+        instance.setName(name);
+        assertThat(name, equalTo(instance.getName()));
     }
 
 }

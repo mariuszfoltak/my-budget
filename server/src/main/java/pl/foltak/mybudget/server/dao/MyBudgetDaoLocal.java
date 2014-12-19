@@ -40,4 +40,15 @@ public interface MyBudgetDaoLocal {
     public void addSubCategory(String USERNAME, String mainCategoryName, Category houseCategory)
             throws CategoryNotFoundException, CategoryAlreadyExistsException;
 
+    public void removeSubCategory(String USERNAME, String FOOD, String CANDY)
+            throws CategoryNotFoundException, CategoryCantBeRemovedException;
+
+    public void editSubCategory(String USERNAME, String FOOD, String CANDY, Category houseCategory)
+            throws CategoryNotFoundException, CategoryAlreadyExistsException;
+
+    public List<Category> getAllCategories(String username);
+    
+    public List<Category> getSubCategories(String username, String mainCategory)
+            throws CategoryNotFoundException;
+
 }

@@ -8,7 +8,6 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -19,11 +18,10 @@ import lombok.Setter;
  * @author Mariusz Foltak <mariusz@foltak.pl>
  */
 @Entity
-@EqualsAndHashCode
 public class Category implements Serializable {
 
     @Id
-    private long id;
+     long id;
 
     @Getter @Setter private String name;
 
@@ -34,6 +32,10 @@ public class Category implements Serializable {
     @OneToMany
     @JoinColumn(name = "category_id")
     List<Transaction> transactions;
+
+    public Category() {
+        this.subCategories = new LinkedList<>();
+    }
 
     /**
      * Adds subcategory to this object. If subCategory is null then throw

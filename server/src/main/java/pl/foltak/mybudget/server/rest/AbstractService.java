@@ -24,13 +24,13 @@ public abstract class AbstractService {
 
 //    TODO: Move AUTHORIZATION_USERNAME to more specific class
     @HeaderParam(value = AuthenticationFilter.AUTHORIZATION_USERNAME)
-     String username;
-    
+    String username;
+
     @PersistenceUnit
     EntityManagerFactory emf;
     private EntityManager em;
     private EntityTransaction tx;
-    
+
     User user;
 
     /**
@@ -41,12 +41,12 @@ public abstract class AbstractService {
             em = emf.createEntityManager();
             tx = em.getTransaction();
             TypedQuery<User> query = em.createQuery(SELECT_USER, User.class);
-            query.setParameter("username", username);
+            query.setParameter("username", getUsername());
             user = query.getSingleResult();
         }
         return user;
     }
-    
+
     protected void closeEntityManager() {
         tx.commit();
         em.close();
@@ -69,6 +69,13 @@ public abstract class AbstractService {
         return getUser().findAccount(wallet).orElseThrow(() -> {
             return new NotFoundException(String.format(ACCOUNT_DOESNT_EXIST, wallet));
         });
+    }
+
+    /**
+     * @return the username
+     */
+    protected String getUsername() {
+        return username;
     }
 
 }
