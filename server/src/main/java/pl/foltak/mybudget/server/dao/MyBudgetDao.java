@@ -13,6 +13,7 @@ import pl.foltak.mybudget.server.dao.exception.CategoryCantBeRemovedException;
 import pl.foltak.mybudget.server.dao.exception.CategoryNotFoundException;
 import pl.foltak.mybudget.server.entity.Account;
 import pl.foltak.mybudget.server.entity.Category;
+import pl.foltak.mybudget.server.entity.Tag;
 import pl.foltak.mybudget.server.entity.User;
 
 /**
@@ -145,6 +146,11 @@ public class MyBudgetDao implements MyBudgetDaoLocal {
     @Override
     public List<Category> getSubCategories(String username, String mainCategory) throws
             CategoryNotFoundException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public List<Tag> getTags(String username) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

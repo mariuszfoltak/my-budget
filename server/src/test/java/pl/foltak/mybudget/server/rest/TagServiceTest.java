@@ -2,29 +2,31 @@ package pl.foltak.mybudget.server.rest;
 
 import java.util.LinkedList;
 import java.util.List;
-import javax.servlet.http.HttpServletResponse;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
+import pl.foltak.mybudget.server.dao.MyBudgetDaoLocal;
 import pl.foltak.mybudget.server.entity.Tag;
-import pl.foltak.mybudget.server.entity.User;
 
 /**
  *
  * @author Mariusz Foltak <mariusz@foltak.pl>
  */
 public class TagServiceTest {
+    
+    private static final String USERNAME = "alibaba";
 
     private TagService instance;
-    private User user;
+    private MyBudgetDaoLocal dao;
 
     @Before
     public void setUp() {
         instance = spy(new TagService());
-        user = mock(User.class);
+        dao = mock(MyBudgetDaoLocal.class);
 
-        doReturn(user).when(instance).getUser();
+        doReturn(USERNAME).when(instance).getUsername();
+        doReturn(dao).when(instance).getDao();
     }
 
     /**
@@ -32,7 +34,6 @@ public class TagServiceTest {
      */
     @Test
     public void isOkStatusReturnedWhenGetTagsIsCalled() {
-        final HttpServletResponse httpServletResponse = mock(HttpServletResponse.class);
         int statusCode = instance.getTags().getStatus();
         assertEquals("Incorrect status code", 200, statusCode);
     }
@@ -45,7 +46,7 @@ public class TagServiceTest {
         List<Tag> tags = new LinkedList<>();
         tags.add(mock(Tag.class));
         tags.add(mock(Tag.class));
-        when(user.getTags()).thenReturn(tags);
+        when(dao.getTags(USERNAME)).thenReturn(tags);
 
         List<Tag> result = (List<Tag>) instance.getTags().getEntity();
         assertEquals("Incorrect list of tags", tags, result);

@@ -1,5 +1,6 @@
 package pl.foltak.mybudget.server.rest;
 
+import javax.ejb.EJB;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
@@ -7,6 +8,7 @@ import javax.persistence.PersistenceUnit;
 import javax.persistence.TypedQuery;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.NotFoundException;
+import pl.foltak.mybudget.server.dao.MyBudgetDaoLocal;
 import pl.foltak.mybudget.server.entity.Account;
 import pl.foltak.mybudget.server.entity.Category;
 import pl.foltak.mybudget.server.entity.User;
@@ -32,6 +34,8 @@ public abstract class AbstractService {
     private EntityTransaction tx;
 
     User user;
+    @EJB
+    MyBudgetDaoLocal dao;
 
     /**
      * @return the user
@@ -76,6 +80,13 @@ public abstract class AbstractService {
      */
     protected String getUsername() {
         return username;
+    }
+
+    /**
+     * @return the dao
+     */
+    protected MyBudgetDaoLocal getDao() {
+        return dao;
     }
 
 }

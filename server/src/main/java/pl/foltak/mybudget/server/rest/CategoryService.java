@@ -2,8 +2,6 @@ package pl.foltak.mybudget.server.rest;
 
 import java.net.URI;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -33,8 +31,6 @@ public class CategoryService extends AbstractService {
     private static final String CATEGORY_ALREADY_EXIST = "Category '%s' already exists";
     private static final String CATEGORY_HAS_TRANSACTIONS = "Category '%s' has transactions";
     private static final String CATEGORY_HAS_SUBCATEGORIES = "Category '%s' has subcategories";
-
-    MyBudgetDaoLocal dao;
 
     @PUT
     @Path("/")
@@ -85,13 +81,6 @@ public class CategoryService extends AbstractService {
             throw new ConflictException(String.format(CATEGORY_ALREADY_EXIST, category.getName()), ex);
         }
         return Response.created(createURI(mainCategoryName, category.getName())).build();
-    }
-
-    /**
-     * @return the dao
-     */
-    protected MyBudgetDaoLocal getDao() {
-        return dao;
     }
 
     @POST

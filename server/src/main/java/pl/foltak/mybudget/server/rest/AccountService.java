@@ -14,7 +14,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import pl.foltak.mybudget.server.dao.MyBudgetDaoLocal;
 import pl.foltak.mybudget.server.dao.exception.AccountAlreadyExistsException;
 import pl.foltak.mybudget.server.dao.exception.AccountCantBeRemovedException;
 import pl.foltak.mybudget.server.dao.exception.AccountNotFoundException;
@@ -37,8 +36,6 @@ public class AccountService extends AbstractService {
     private static final String ACCOUNT_HAS_TRANSACTIONS = "Account '%s' has transactions and cannot be removed";
     private static final String ACCOUNT_ALREADY_EXISTS = "Account '%s' already exists";
     
-    @EJB
-    MyBudgetDaoLocal dao;
 
     /**
      * Creates new account.
@@ -51,7 +48,7 @@ public class AccountService extends AbstractService {
     @Path("/")
     public Response createAccount(Account account) {
         try {
-            dao.createAccount(getUsername(), account);
+            getDao().createAccount(getUsername(), account);
         } catch (AccountAlreadyExistsException ex) {
             throw new ConflictException(String.format(ACCOUNT_ALREADY_EXISTS, account.getName()), ex);
         }
@@ -70,7 +67,7 @@ public class AccountService extends AbstractService {
     @Path("/{account}")
     public Response modifyAccount(@PathParam("account") String accountName, Account account) {
         try {
-            dao.updateAccount(getUsername(), accountName, account);
+            getDao().updateAccount(getUsername(), accountName, account);
         } catch (AccountAlreadyExistsException ex) {
             throw new ConflictException(String.format(ACCOUNT_ALREADY_EXISTS, account.getName()), ex);
         } catch (AccountNotFoundException ex) {
@@ -89,7 +86,7 @@ public class AccountService extends AbstractService {
     @Path("/{account}")
     public Response removeAccount(@PathParam("account") String accountName) {
         try {
-            dao.removeAccount(getUsername(), accountName);
+            getDao().removeAccount(getUsername(), accountName);
         } catch (AccountNotFoundException ex) {
             throw new NotFoundException(String.format(ACCOUNT_DOESNT_EXIST, accountName));
         } catch (AccountCantBeRemovedException ex) {
@@ -106,7 +103,7 @@ public class AccountService extends AbstractService {
     @GET
     @Path("/")
     public Response getAccounts() {
-        final List<Account> accounts = dao.getAccounts(getUsername());
+        final List<Account> accounts = getDao().getAccounts(getUsername());
         return Response.ok(accounts).build();
     }
 
@@ -189,6 +186,7 @@ public class AccountService extends AbstractService {
         Category subCategory = findSubCategory(mainCategory, categoriesNames[1]);
         return subCategory;
     }
+
 
     Transaction convert(TransactionDTO transactionDTO) {
         throw new UnsupportedOperationException("Not supported yet.");

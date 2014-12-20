@@ -19,7 +19,7 @@ public class TagService extends AbstractService {
     @GET
     @Path("/")
     public Response getTags() {
-        List<Tag> tags = getUser().getTags();
+        List<Tag> tags = getDao().getTags(getUsername());
         return Response.ok(tags).build();
     }
 
