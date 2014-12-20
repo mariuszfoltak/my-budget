@@ -16,7 +16,6 @@ import pl.foltak.mybudget.server.dto.TransactionDTO;
 import pl.foltak.mybudget.server.entity.Account;
 import pl.foltak.mybudget.server.entity.Category;
 import pl.foltak.mybudget.server.entity.Tag;
-import pl.foltak.mybudget.server.entity.Transaction;
 import pl.foltak.mybudget.server.entity.User;
 
 /**
@@ -158,7 +157,7 @@ public class MyBudgetDao implements MyBudgetDaoLocal {
     }
 
     @Override
-    public void addTransaction(String USERNAME, String WALLET, Transaction transaction) throws
+    public void addTransaction(String USERNAME, TransactionDTO transactionDTO) throws
             AccountNotFoundException, CategoryNotFoundException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }

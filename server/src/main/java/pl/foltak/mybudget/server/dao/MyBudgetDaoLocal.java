@@ -13,7 +13,6 @@ import pl.foltak.mybudget.server.dto.TransactionDTO;
 import pl.foltak.mybudget.server.entity.Account;
 import pl.foltak.mybudget.server.entity.Category;
 import pl.foltak.mybudget.server.entity.Tag;
-import pl.foltak.mybudget.server.entity.Transaction;
 
 /**
  *
@@ -57,7 +56,7 @@ public interface MyBudgetDaoLocal {
 
     public List<Tag> getTags(String username);
 
-    public void addTransaction(String USERNAME, String WALLET, Transaction transaction)
+    public void addTransaction(String USERNAME, TransactionDTO transactionDTO)
             throws AccountNotFoundException, CategoryNotFoundException;
 
     public void updateTransaction(String USERNAME, TransactionDTO transactionDTO)

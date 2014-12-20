@@ -1,9 +1,6 @@
 package pl.foltak.mybudget.server.rest;
 
 import java.net.URI;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
 import org.junit.Before;
@@ -15,11 +12,7 @@ import pl.foltak.mybudget.server.dao.exception.AccountNotFoundException;
 import pl.foltak.mybudget.server.dao.exception.CategoryNotFoundException;
 import pl.foltak.mybudget.server.dao.exception.TransactionNotFoundException;
 import pl.foltak.mybudget.server.dto.TransactionDTO;
-import pl.foltak.mybudget.server.entity.Account;
-import pl.foltak.mybudget.server.entity.Category;
-import pl.foltak.mybudget.server.entity.Tag;
 import pl.foltak.mybudget.server.entity.Transaction;
-import pl.foltak.mybudget.server.entity.User;
 
 /**
  *
@@ -28,60 +21,27 @@ import pl.foltak.mybudget.server.entity.User;
 public class TransactionServiceTest {
 
     private static final long ID_47 = 47L;
-    private static final String FOOD = "food";
-    private static final String CANDY = "candy";
     private static final String WALLET = "wallet";
     private static final String USERNAME = "alibaba";
-    private static final String FIRST_TAG = "firstTag";
-    private static final String SECOND_TAG = "secondTag";
     private static final String NONEXISTENT = "nonexistent";
 
-    private User user;
-    private Account account;
-    private Category subCategory;
-    private Category mainCategory;
     private AccountService instance;
     private TransactionDTO transactionDTO;
 
-    private Tag firstTag;
-    private Tag secondTag;
     private Transaction transaction;
-    private List<String> tags;
     private MyBudgetDaoLocal dao;
 
     @Before
     public void setUp() {
         dao = mock(MyBudgetDaoLocal.class);
-        user = mock(User.class);
-        tags = Arrays.asList(new String[]{FIRST_TAG, SECOND_TAG});
-        account = mock(Account.class);
         instance = spy(new AccountService());
-        firstTag = mock(Tag.class);
-        secondTag = mock(Tag.class);
-        subCategory = mock(Category.class);
         transaction = mock(Transaction.class);
-        mainCategory = mock(Category.class);
         transactionDTO = mock(TransactionDTO.class);
 
         doReturn(dao).when(instance).getDao();
-        doReturn(user).when(instance).getUser();
         doReturn(USERNAME).when(instance).getUsername();
-        doReturn(firstTag).when(instance).findOrCreateTag(FIRST_TAG);
-        doReturn(secondTag).when(instance).findOrCreateTag(SECOND_TAG);
-        doReturn(transaction).when(instance).convert(transactionDTO);
-        doReturn(transaction).when(instance).updateTransaction(transactionDTO, transaction);
 
-        when(user.findAccount(any())).thenReturn(Optional.ofNullable(null));
-        when(user.findAccount(WALLET)).thenReturn(Optional.of(account));
-        when(user.findCategory(any())).thenReturn(Optional.ofNullable(null));
-        when(user.findCategory(FOOD)).thenReturn(Optional.of(mainCategory));
-        when(account.findTransaction(anyLong())).thenReturn(Optional.ofNullable(null));
-        when(account.findTransaction(ID_47)).thenReturn(Optional.of(transaction));
-        when(mainCategory.findSubCategory(any())).thenReturn(Optional.ofNullable(null));
-        when(mainCategory.findSubCategory(CANDY)).thenReturn(Optional.of(subCategory));
         when(transactionDTO.getId()).thenReturn(ID_47);
-        when(transactionDTO.getCategoryPath()).thenReturn(FOOD + "/" + CANDY);
-        when(transactionDTO.getTags()).thenReturn(tags);
     }
 
     /**
@@ -100,7 +60,7 @@ public class TransactionServiceTest {
     public void isLocationHeaderReturnedWhenCreateTransactionIsCalled() {
         when(transaction.getId()).thenReturn(ID_47);
         Response response = instance.createTransaction(WALLET, transactionDTO);
-        assertEquals("Incorrect location header", URI.create("accounts/wallet/47"),
+        assertEquals("Incorrect location header", URI.create("transaction/47"),
                 response.getLocation());
     }
 
@@ -115,7 +75,7 @@ public class TransactionServiceTest {
             throws AccountNotFoundException, CategoryNotFoundException {
         
         instance.createTransaction(WALLET, transactionDTO);
-        verify(dao).addTransaction(USERNAME, WALLET, transaction);
+        verify(dao).addTransaction(USERNAME, transactionDTO);
     }
 
     /**
@@ -130,7 +90,7 @@ public class TransactionServiceTest {
             throws AccountNotFoundException, CategoryNotFoundException {
 
         doThrow(AccountNotFoundException.class).when(dao)
-                .addTransaction(any(), any(), any());
+                .addTransaction(any(), any());
         instance.createTransaction(NONEXISTENT, transactionDTO);
     }
 
@@ -145,7 +105,7 @@ public class TransactionServiceTest {
             throws AccountNotFoundException, CategoryNotFoundException {
         
         doThrow(CategoryNotFoundException.class).when(dao)
-                .addTransaction(any(), any(), any());
+                .addTransaction(any(), any());
         instance.createTransaction(WALLET, transactionDTO);
     }
 

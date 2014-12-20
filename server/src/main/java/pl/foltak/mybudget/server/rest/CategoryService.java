@@ -13,7 +13,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import pl.foltak.mybudget.server.dao.MyBudgetDaoLocal;
 import pl.foltak.mybudget.server.dao.exception.CategoryAlreadyExistsException;
 import pl.foltak.mybudget.server.dao.exception.CategoryCantBeRemovedException;
 import pl.foltak.mybudget.server.dao.exception.CategoryNotFoundException;
@@ -28,18 +27,13 @@ import pl.foltak.mybudget.server.rest.exception.ConflictException;
 @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 public class CategoryService extends AbstractService {
 
-    private static final String CATEGORY_ALREADY_EXIST = "Category '%s' already exists";
-    private static final String CATEGORY_HAS_TRANSACTIONS = "Category '%s' has transactions";
-    private static final String CATEGORY_HAS_SUBCATEGORIES = "Category '%s' has subcategories";
-
     @PUT
     @Path("/")
     public Response addMainCategory(Category category) {
         try {
             getDao().addCategory(getUsername(), category);
         } catch (CategoryAlreadyExistsException ex) {
-            throw new ConflictException(String.format(CATEGORY_ALREADY_EXIST, category.getName()),
-                    ex);
+            throw new ConflictException(ex.getMessage(), ex);
         }
         return Response.created(createURI(category)).build();
     }
@@ -51,7 +45,7 @@ public class CategoryService extends AbstractService {
         try {
             getDao().modifyMainCategory(getUsername(), categoryName, category);
         } catch (CategoryNotFoundException ex) {
-            throw new NotFoundException(String.format(CATEGORY_DOESNT_EXIST, categoryName), ex);
+            throw new NotFoundException(ex.getMessage(), ex);
         }
         return Response.ok().build();
     }
@@ -62,9 +56,9 @@ public class CategoryService extends AbstractService {
         try {
             getDao().removeMainCategory(getUsername(), categoryName);
         } catch (CategoryNotFoundException ex) {
-            throw new NotFoundException(String.format(CATEGORY_DOESNT_EXIST, categoryName), ex);
+            throw new NotFoundException(ex.getMessage(), ex);
         } catch (CategoryCantBeRemovedException ex) {
-            throw new BadRequestException("Category can't be removed", ex);
+            throw new BadRequestException(ex.getMessage(), ex);
         }
         return Response.ok().build();
     }
@@ -76,9 +70,9 @@ public class CategoryService extends AbstractService {
         try {
             getDao().addSubCategory(getUsername(), mainCategoryName, category);
         } catch (CategoryNotFoundException ex) {
-            throw new NotFoundException(String.format(CATEGORY_DOESNT_EXIST, mainCategoryName), ex);
+            throw new NotFoundException(ex.getMessage(), ex);
         } catch (CategoryAlreadyExistsException ex) {
-            throw new ConflictException(String.format(CATEGORY_ALREADY_EXIST, category.getName()), ex);
+            throw new ConflictException(ex.getMessage(), ex);
         }
         return Response.created(createURI(mainCategoryName, category.getName())).build();
     }
@@ -91,9 +85,9 @@ public class CategoryService extends AbstractService {
         try {
             getDao().editSubCategory(getUsername(), mainCategoryName, subCategoryName, category);
         } catch (CategoryNotFoundException ex) {
-            throw new NotFoundException(String.format(CATEGORY_DOESNT_EXIST, ex.getCategoryName()), ex);
+            throw new NotFoundException(ex.getMessage(), ex);
         } catch (CategoryAlreadyExistsException ex) {
-            throw new ConflictException(String.format(CATEGORY_ALREADY_EXIST, category.getName()), ex);
+            throw new ConflictException(ex.getMessage(), ex);
         }
         return Response.ok().build();
     }
@@ -105,9 +99,9 @@ public class CategoryService extends AbstractService {
         try {
             getDao().removeSubCategory(getUsername(), mainCategoryName, subCategoryName);
         } catch (CategoryNotFoundException ex) {
-            throw new NotFoundException(String.format(CATEGORY_DOESNT_EXIST, ex.getCategoryName()), ex);
+            throw new NotFoundException(ex.getMessage(), ex);
         } catch (CategoryCantBeRemovedException ex) {
-            throw new BadRequestException(String.format(CATEGORY_HAS_SUBCATEGORIES, subCategoryName), ex);
+            throw new BadRequestException(ex.getMessage(), ex);
         }
         return Response.ok().build();
     }
@@ -126,7 +120,7 @@ public class CategoryService extends AbstractService {
         try {
             subCategories = getDao().getSubCategories(getUsername(), mainCategoryName);
         } catch (CategoryNotFoundException ex) {
-            throw new NotFoundException(String.format(CATEGORY_DOESNT_EXIST, mainCategoryName), ex);
+            throw new NotFoundException(ex.getMessage(), ex);
         }
         return Response.ok(subCategories).build();
     }
