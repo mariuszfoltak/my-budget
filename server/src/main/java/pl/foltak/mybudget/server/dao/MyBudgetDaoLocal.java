@@ -8,9 +8,12 @@ import pl.foltak.mybudget.server.dao.exception.AccountNotFoundException;
 import pl.foltak.mybudget.server.dao.exception.CategoryAlreadyExistsException;
 import pl.foltak.mybudget.server.dao.exception.CategoryCantBeRemovedException;
 import pl.foltak.mybudget.server.dao.exception.CategoryNotFoundException;
+import pl.foltak.mybudget.server.dao.exception.TransactionNotFoundException;
+import pl.foltak.mybudget.server.dto.TransactionDTO;
 import pl.foltak.mybudget.server.entity.Account;
 import pl.foltak.mybudget.server.entity.Category;
 import pl.foltak.mybudget.server.entity.Tag;
+import pl.foltak.mybudget.server.entity.Transaction;
 
 /**
  *
@@ -53,5 +56,13 @@ public interface MyBudgetDaoLocal {
             throws CategoryNotFoundException;
 
     public List<Tag> getTags(String username);
+
+    public void addTransaction(String USERNAME, String WALLET, Transaction transaction)
+            throws AccountNotFoundException, CategoryNotFoundException;
+
+    public void updateTransaction(String USERNAME, TransactionDTO transactionDTO)
+            throws AccountNotFoundException, TransactionNotFoundException, CategoryNotFoundException;
+
+    public void removeTransaction(String USERNAME, long ID_47) throws TransactionNotFoundException;
 
 }

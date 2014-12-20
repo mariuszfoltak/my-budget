@@ -11,9 +11,12 @@ import pl.foltak.mybudget.server.dao.exception.AccountNotFoundException;
 import pl.foltak.mybudget.server.dao.exception.CategoryAlreadyExistsException;
 import pl.foltak.mybudget.server.dao.exception.CategoryCantBeRemovedException;
 import pl.foltak.mybudget.server.dao.exception.CategoryNotFoundException;
+import pl.foltak.mybudget.server.dao.exception.TransactionNotFoundException;
+import pl.foltak.mybudget.server.dto.TransactionDTO;
 import pl.foltak.mybudget.server.entity.Account;
 import pl.foltak.mybudget.server.entity.Category;
 import pl.foltak.mybudget.server.entity.Tag;
+import pl.foltak.mybudget.server.entity.Transaction;
 import pl.foltak.mybudget.server.entity.User;
 
 /**
@@ -151,6 +154,23 @@ public class MyBudgetDao implements MyBudgetDaoLocal {
 
     @Override
     public List<Tag> getTags(String username) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void addTransaction(String USERNAME, String WALLET, Transaction transaction) throws
+            AccountNotFoundException, CategoryNotFoundException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void updateTransaction(String USERNAME, TransactionDTO transactionDTO) throws
+            AccountNotFoundException, TransactionNotFoundException, CategoryNotFoundException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void removeTransaction(String USERNAME, long ID_47) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

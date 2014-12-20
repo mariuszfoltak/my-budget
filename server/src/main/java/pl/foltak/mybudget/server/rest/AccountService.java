@@ -2,7 +2,8 @@ package pl.foltak.mybudget.server.rest;
 
 import java.net.URI;
 import java.util.List;
-import javax.ejb.EJB;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -17,6 +18,8 @@ import javax.ws.rs.core.Response;
 import pl.foltak.mybudget.server.dao.exception.AccountAlreadyExistsException;
 import pl.foltak.mybudget.server.dao.exception.AccountCantBeRemovedException;
 import pl.foltak.mybudget.server.dao.exception.AccountNotFoundException;
+import pl.foltak.mybudget.server.dao.exception.CategoryNotFoundException;
+import pl.foltak.mybudget.server.dao.exception.TransactionNotFoundException;
 import pl.foltak.mybudget.server.dto.TransactionDTO;
 import pl.foltak.mybudget.server.entity.Account;
 import pl.foltak.mybudget.server.entity.Category;
@@ -35,11 +38,10 @@ public class AccountService extends AbstractService {
 
     private static final String ACCOUNT_HAS_TRANSACTIONS = "Account '%s' has transactions and cannot be removed";
     private static final String ACCOUNT_ALREADY_EXISTS = "Account '%s' already exists";
-    
 
     /**
      * Creates new account.
-     * 
+     *
      * @param account The account that should be created
      * @return 201 Created when the account was created or 409 Conflict when the account already
      * exists
@@ -57,7 +59,7 @@ public class AccountService extends AbstractService {
 
     /**
      * Modifies an account in user .
-     * 
+     *
      * @param accountName the name of the account that should be modified
      * @param account new account data
      * @return 200 OK when an account was modified, 404 Not Found when the account doesn't exist and
@@ -78,7 +80,7 @@ public class AccountService extends AbstractService {
 
     /**
      * Removes an account from user accounts.
-     * 
+     *
      * @param accountName the name of account that should be removed.
      * @return 200 OK when the account was removed or 404 Not Found when the account doesn't exist.
      */
@@ -97,7 +99,7 @@ public class AccountService extends AbstractService {
 
     /**
      * Returns list of accounts belongs to the user.
-     * 
+     *
      * @return list of accounts
      */
     @GET
@@ -112,15 +114,15 @@ public class AccountService extends AbstractService {
     public Response createTransaction(@PathParam("account") String accountName,
             TransactionDTO transactionDTO) {
 
-        final Account account = findAccount(accountName);
-        final Category subCategory = getTargetCategory(transactionDTO);
         final Transaction transaction = convert(transactionDTO);
-
-        account.addTransaction(transaction);
-        subCategory.addTransaction(transaction);
-
-        addTagsToTransaction(transaction, transactionDTO);
-
+        try {
+            getDao().addTransaction(getUsername(), accountName, transaction);
+        } catch (AccountNotFoundException ex) {
+            throw new NotFoundException(String.format(ACCOUNT_DOESNT_EXIST, accountName), ex);
+        } catch (CategoryNotFoundException ex) {
+            // TODO: Change exception message
+            throw new NotFoundException(CATEGORY_DOESNT_EXIST, ex);
+        }
         return Response.created(URICreator.of(accountName, transaction)).build();
     }
 
@@ -129,21 +131,22 @@ public class AccountService extends AbstractService {
     public Response modifyTransaction(@PathParam("account") String accountName,
             TransactionDTO transactionDTO) {
 
-        Transaction transaction = findTransaction(findAccount(accountName), transactionDTO.getId());
-        transaction = updateTransaction(transactionDTO, transaction);
-        getTargetCategory(transactionDTO).addTransaction(transaction);
-
-        addTagsToTransaction(transaction, transactionDTO);
-
+        try {
+            getDao().updateTransaction(getUsername(), transactionDTO);
+        } catch (AccountNotFoundException | TransactionNotFoundException | CategoryNotFoundException ex) {
+            throw new NotFoundException(ex.getMessage(), ex);
+        }
         return Response.ok().build();
     }
 
     @DELETE
     @Path("/")
     public Response removeTransaction(@PathParam("account") String accountName, long transactionId) {
-        final Account account = findAccount(accountName);
-        final Transaction transaction = findTransaction(account, transactionId);
-        account.removeTransaction(transaction);
+        try {
+            getDao().removeTransaction(getUsername(), transactionId);
+        } catch (TransactionNotFoundException ex) {
+            throw new NotFoundException(CATEGORY_DOESNT_EXIST, ex);
+        }
         return Response.ok().build();
     }
 
@@ -186,7 +189,6 @@ public class AccountService extends AbstractService {
         Category subCategory = findSubCategory(mainCategory, categoriesNames[1]);
         return subCategory;
     }
-
 
     Transaction convert(TransactionDTO transactionDTO) {
         throw new UnsupportedOperationException("Not supported yet.");
