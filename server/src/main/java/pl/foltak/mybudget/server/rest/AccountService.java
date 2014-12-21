@@ -42,7 +42,7 @@ public class AccountService extends AbstractService {
     @Path("/")
     public Response createAccount(Account account) {
         try {
-            getDao().createAccount(getUsername(), account);
+            getDao().addAccount(getUsername(), account);
         } catch (AccountAlreadyExistsException ex) {
             throw new ConflictException(ex.getMessage(), ex);
         }

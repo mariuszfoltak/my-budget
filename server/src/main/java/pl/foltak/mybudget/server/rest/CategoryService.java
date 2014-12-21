@@ -2,6 +2,8 @@ package pl.foltak.mybudget.server.rest;
 
 import java.net.URI;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -31,7 +33,7 @@ public class CategoryService extends AbstractService {
     @Path("/")
     public Response addMainCategory(Category category) {
         try {
-            getDao().addCategory(getUsername(), category);
+            getDao().addMainCategory(getUsername(), category);
         } catch (CategoryAlreadyExistsException ex) {
             throw new ConflictException(ex.getMessage(), ex);
         }
@@ -43,9 +45,11 @@ public class CategoryService extends AbstractService {
     public Response editMainCategory(@PathParam("mainCategory") String categoryName,
             Category category) {
         try {
-            getDao().modifyMainCategory(getUsername(), categoryName, category);
+            getDao().updateMainCategory(getUsername(), categoryName, category);
         } catch (CategoryNotFoundException ex) {
             throw new NotFoundException(ex.getMessage(), ex);
+        } catch (CategoryAlreadyExistsException ex) {
+            //TODO: add exception
         }
         return Response.ok().build();
     }
@@ -83,7 +87,7 @@ public class CategoryService extends AbstractService {
             @PathParam("subCategory") String subCategoryName, Category category) {
         
         try {
-            getDao().editSubCategory(getUsername(), mainCategoryName, subCategoryName, category);
+            getDao().updateSubCategory(getUsername(), mainCategoryName, subCategoryName, category);
         } catch (CategoryNotFoundException ex) {
             throw new NotFoundException(ex.getMessage(), ex);
         } catch (CategoryAlreadyExistsException ex) {

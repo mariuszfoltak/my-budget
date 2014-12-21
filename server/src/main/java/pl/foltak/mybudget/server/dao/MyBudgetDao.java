@@ -25,7 +25,8 @@ import pl.foltak.mybudget.server.entity.User;
  */
 @Stateless
 public class MyBudgetDao implements MyBudgetDaoLocal {
-    
+
+    private static final String CATEGORY_DOESNT_EXIST = "Category %s doesn't exist";
     private static final String SELECT_USER = "SELECT u FROM users AS u WHERE u.username = :username";
 
     @PersistenceContext(name = "pl.foltak.my-budget")
@@ -40,7 +41,7 @@ public class MyBudgetDao implements MyBudgetDaoLocal {
      * @throws AccountAlreadyExistsException when account with given name already exists
      */
     @Override
-    public void createAccount(String username, Account account) throws AccountAlreadyExistsException {
+    public void addAccount(String username, Account account) throws AccountAlreadyExistsException {
         final User user = getUserByName(username);
         if (user.findAccount(account.getName()).isPresent()) {
             throw new AccountAlreadyExistsException();
@@ -104,22 +105,64 @@ public class MyBudgetDao implements MyBudgetDaoLocal {
         return getUserByName(username).getAccounts();
     }
 
+    /**
+     * Adds given category to user with given name. If category already exists, method throws
+     * exception.
+     *
+     * @param username name of user to which category should be added
+     * @param category category that should be added
+     * @throws CategoryAlreadyExistsException if category already exists
+     */
     @Override
-    public void addCategory(String username, Category category) throws
+    public void addMainCategory(String username, Category category) throws
             CategoryAlreadyExistsException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+        final User user = getUserByName(username);
+        if (user.findCategory(category.getName()).isPresent()) {
+            throw new CategoryAlreadyExistsException(
+                    "Category " + category.getName() + " already exists");
+        }
+        user.addCategory(category);
     }
 
+    /**
+     * Removes given category from an user. Throws an exception if a category doesn't exist or can't
+     * be deleted.
+     *
+     * @param username user which from category should be removed
+     * @param categoryName category to be removed
+     * @throws CategoryNotFoundException if a category doesn't exist
+     * @throws CategoryCantBeRemovedException if a category has transactions or sub categories
+     */
     @Override
     public void removeMainCategory(String username, String categoryName) throws
             CategoryNotFoundException, CategoryCantBeRemovedException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+        final User user = getUserByName(username);
+        final Category category = user.findCategory(categoryName).orElseThrow(
+                () -> CategoryNotFoundException.of(categoryName));
+
+        if (category.hasSubCategories()) {
+            throw new CategoryCantBeRemovedException(
+                    "Category " + categoryName + " has sub categories");
+        }
+        if (category.hasTransactions()) {
+            throw new CategoryCantBeRemovedException("Categor " + categoryName + "has transactions");
+        }
+        user.removeCategory(category);
     }
 
     @Override
-    public void modifyMainCategory(String username, String categoryName, Category categoryValues) throws
-            CategoryNotFoundException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void updateMainCategory(String username, String categoryName, Category categoryValues)
+            throws CategoryNotFoundException, CategoryAlreadyExistsException {
+        
+        User user = getUserByName(username);
+        if (!categoryName.equals(categoryValues.getName()) && 
+                user.findCategory(categoryValues.getName()).isPresent()) {
+            throw CategoryAlreadyExistsException.of(categoryValues.getName());
+        }
+        setCategoryFields(user.findCategory(categoryName).orElseThrow(
+                () -> CategoryNotFoundException.of(categoryName)), categoryValues);
     }
 
     @Override
@@ -135,7 +178,7 @@ public class MyBudgetDao implements MyBudgetDaoLocal {
     }
 
     @Override
-    public void editSubCategory(String USERNAME, String FOOD, String CANDY, Category houseCategory) throws
+    public void updateSubCategory(String USERNAME, String FOOD, String CANDY, Category houseCategory) throws
             CategoryNotFoundException, CategoryAlreadyExistsException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
@@ -181,6 +224,10 @@ public class MyBudgetDao implements MyBudgetDaoLocal {
 
     void setAccountFields(Account account, final Account withValues) {
         account.setName(withValues.getName());
+    }
+
+    void setCategoryFields(Category category, Category withValues) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 }

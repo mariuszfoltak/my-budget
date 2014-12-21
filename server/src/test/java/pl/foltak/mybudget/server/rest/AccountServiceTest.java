@@ -75,7 +75,7 @@ public class AccountServiceTest {
     public void isServiceAddAccountToUserWhenAccountIsCreated() 
             throws AccountAlreadyExistsException {
         instance.createAccount(bankAccount);
-        verify(dao).createAccount(USERNAME, bankAccount);
+        verify(dao).addAccount(USERNAME, bankAccount);
     }
 
     /**
@@ -88,7 +88,7 @@ public class AccountServiceTest {
     public void isConflictExceptionThrownWhenTryToCreateAccountThatAlreadyExists() 
             throws AccountAlreadyExistsException {
         doThrow(AccountAlreadyExistsException.class).when(dao)
-                .createAccount(USERNAME, walletAccount);
+                .addAccount(USERNAME, walletAccount);
         instance.createAccount(walletAccount);
     }
 

@@ -21,7 +21,7 @@ import pl.foltak.mybudget.server.entity.Tag;
 @Local
 public interface MyBudgetDaoLocal {
 
-    public void createAccount(String username, Account account)
+    public void addAccount(String username, Account account)
             throws AccountAlreadyExistsException;
 
     public void updateAccount(String username, String accountName, Account account)
@@ -32,22 +32,22 @@ public interface MyBudgetDaoLocal {
 
     public List<Account> getAccounts(String username);
 
-    public void addCategory(String username, Category category) throws CategoryAlreadyExistsException;
+    public void addMainCategory(String username, Category category) throws CategoryAlreadyExistsException;
+
+    public void updateMainCategory(String username, String categoryName, Category categoryValues)
+            throws CategoryNotFoundException, CategoryAlreadyExistsException;
 
     public void removeMainCategory(String username, String categoryName) 
             throws CategoryNotFoundException, CategoryCantBeRemovedException;
 
-    public void modifyMainCategory(String username, String categoryName, Category categoryValues)
-            throws CategoryNotFoundException;
-
     public void addSubCategory(String USERNAME, String mainCategoryName, Category houseCategory)
+            throws CategoryNotFoundException, CategoryAlreadyExistsException;
+
+    public void updateSubCategory(String USERNAME, String FOOD, String CANDY, Category houseCategory)
             throws CategoryNotFoundException, CategoryAlreadyExistsException;
 
     public void removeSubCategory(String USERNAME, String FOOD, String CANDY)
             throws CategoryNotFoundException, CategoryCantBeRemovedException;
-
-    public void editSubCategory(String USERNAME, String FOOD, String CANDY, Category houseCategory)
-            throws CategoryNotFoundException, CategoryAlreadyExistsException;
 
     public List<Category> getAllCategories(String username);
     

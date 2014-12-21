@@ -64,7 +64,7 @@ public class MyBudgetDaoTest {
 
         final Account newAccount = mock(Account.class);
 
-        instance.createAccount(USERNAME, newAccount);
+        instance.addAccount(USERNAME, newAccount);
         verify(user).addAccount(newAccount);
     }
 
@@ -77,7 +77,7 @@ public class MyBudgetDaoTest {
     public void isExceptionThrownWhenTryToCreateAccountThatAlreadyExists()
             throws AccountAlreadyExistsException {
 
-        instance.createAccount(USERNAME, walletAccount);
+        instance.addAccount(USERNAME, walletAccount);
     }
 
     /**

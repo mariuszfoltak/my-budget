@@ -77,7 +77,7 @@ public class CategoryServiceTest {
     public void isMyBudgetDaoCalledWhenAddingMainCategory()
             throws CategoryAlreadyExistsException {
         instance.addMainCategory(houseCategory);
-        verify(dao).addCategory(USERNAME, houseCategory);
+        verify(dao).addMainCategory(USERNAME, houseCategory);
     }
 
     /**
@@ -90,7 +90,7 @@ public class CategoryServiceTest {
     public void isConflictExceptionThrownWhenAddingExistingMainCategory()
             throws CategoryAlreadyExistsException {
         doThrow(CategoryAlreadyExistsException.class).when(dao)
-                .addCategory(USERNAME, mainCategory);
+                .addMainCategory(USERNAME, mainCategory);
         instance.addMainCategory(mainCategory);
     }
 
@@ -154,11 +154,14 @@ public class CategoryServiceTest {
      * Method editMainCategory should call MyBudgetDao.
      *
      * @throws CategoryNotFoundException
+     * @throws CategoryAlreadyExistsException
      */
     @Test
-    public void isDaoCalledWhenModifyMainCategory() throws CategoryNotFoundException {
+    public void isDaoCalledWhenModifyMainCategory() 
+            throws CategoryNotFoundException, CategoryAlreadyExistsException {
+        
         instance.editMainCategory(FOOD, houseCategory);
-        verify(dao).modifyMainCategory(USERNAME, FOOD, houseCategory);
+        verify(dao).updateMainCategory(USERNAME, FOOD, houseCategory);
     }
 
     /**
@@ -175,13 +178,14 @@ public class CategoryServiceTest {
      * doesn't exist.
      *
      * @throws CategoryNotFoundException
+     * @throws CategoryAlreadyExistsException
      */
     @Test(expected = NotFoundException.class)
     public void isNotFoundExceptionThrownWhenModifingNonexistingMainCategory()
-            throws CategoryNotFoundException {
+            throws CategoryNotFoundException, CategoryAlreadyExistsException {
 
         doThrow(CategoryNotFoundException.class).when(dao)
-                .modifyMainCategory(any(), any(), any());
+                .updateMainCategory(any(), any(), any());
         instance.editMainCategory(NONEXISTENT, subCategory);
     }
 
@@ -321,7 +325,7 @@ public class CategoryServiceTest {
             throws CategoryNotFoundException, CategoryAlreadyExistsException {
         
         instance.editSubCategory(FOOD, CANDY, houseCategory);
-        verify(dao).editSubCategory(USERNAME, FOOD, CANDY, houseCategory);
+        verify(dao).updateSubCategory(USERNAME, FOOD, CANDY, houseCategory);
     }
 
     /**
@@ -335,7 +339,7 @@ public class CategoryServiceTest {
             throws CategoryNotFoundException, CategoryAlreadyExistsException {
 
         doThrow(CategoryNotFoundException.class).when(dao)
-                .editSubCategory(any(), any(), any(), any());
+                .updateSubCategory(any(), any(), any(), any());
         instance.editSubCategory(NONEXISTENT, CANDY, houseCategory);
     }
 
@@ -350,7 +354,7 @@ public class CategoryServiceTest {
             throws CategoryNotFoundException, CategoryAlreadyExistsException {
         
         doThrow(CategoryAlreadyExistsException.class).when(dao)
-                .editSubCategory(any(), any(), any(), any());
+                .updateSubCategory(any(), any(), any(), any());
         instance.editSubCategory(FOOD, CANDY, subCategory);
     }
 
