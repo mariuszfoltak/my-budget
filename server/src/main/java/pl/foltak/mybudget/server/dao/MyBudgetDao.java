@@ -67,7 +67,7 @@ public class MyBudgetDao implements MyBudgetDaoLocal {
                 .orElseThrow(AccountNotFoundException::new);
 
         if (user.findAccount(account.getName()).isPresent()) {
-            throw new AccountAlreadyExistsException();
+            throw AccountAlreadyExistsException.of(accountName);
         }
 
         setAccountFields(get, account);
@@ -155,43 +155,82 @@ public class MyBudgetDao implements MyBudgetDaoLocal {
     @Override
     public void updateMainCategory(String username, String categoryName, Category categoryValues)
             throws CategoryNotFoundException, CategoryAlreadyExistsException {
-        
+
         User user = getUserByName(username);
-        if (!categoryName.equals(categoryValues.getName()) && 
-                user.findCategory(categoryValues.getName()).isPresent()) {
+        if (!categoryName.equals(categoryValues.getName())
+                && user.findCategory(categoryValues.getName()).isPresent()) {
             throw CategoryAlreadyExistsException.of(categoryValues.getName());
         }
         setCategoryFields(user.findCategory(categoryName).orElseThrow(
                 () -> CategoryNotFoundException.of(categoryName)), categoryValues);
     }
 
+    /**
+     * Adds sub category to parent category.
+     *
+     * @param username user which to add new sub category
+     * @param mainCategoryName main category which to add new sub category
+     * @param houseCategory sub category to be added
+     * @throws CategoryNotFoundException if main category doesn't exist
+     * @throws CategoryAlreadyExistsException if sub category already exists
+     */
     @Override
-    public void addSubCategory(String USERNAME, String mainCategoryName, Category houseCategory) throws
+    public void addSubCategory(String username, String mainCategoryName, Category houseCategory) throws
             CategoryNotFoundException, CategoryAlreadyExistsException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        User user = getUserByName(username);
+        Category mainCategory = user.findCategory(mainCategoryName)
+                .orElseThrow(() -> CategoryNotFoundException.of(mainCategoryName));
+        if (mainCategory.findSubCategory(houseCategory.getName()).isPresent()) {
+            throw CategoryAlreadyExistsException.of(houseCategory.getName());
+        }
+        mainCategory.addSubCategory(houseCategory);
     }
 
     @Override
     public void removeSubCategory(String USERNAME, String FOOD, String CANDY) throws
             CategoryNotFoundException, CategoryCantBeRemovedException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+        Category mainCategory = getUserByName(USERNAME).findCategory(FOOD)
+                .orElseThrow(() -> CategoryNotFoundException.of(FOOD));
+
+        Category subCategory = mainCategory.findSubCategory(CANDY)
+                .orElseThrow(() -> CategoryNotFoundException.of(CANDY));
+
+        if (subCategory.hasTransactions()) {
+            // TODO: Write a better message that includes category name
+            throw new CategoryCantBeRemovedException("Category has transactions");
+        }
+        mainCategory.removeSubCategory(subCategory);
     }
 
     @Override
-    public void updateSubCategory(String USERNAME, String FOOD, String CANDY, Category houseCategory) throws
-            CategoryNotFoundException, CategoryAlreadyExistsException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void updateSubCategory(String username, String mainCategoryName, String subCategoryName,
+            Category houseCategory) throws CategoryNotFoundException, CategoryAlreadyExistsException {
+
+        Category mainCategory = getUserByName(username).findCategory(mainCategoryName)
+                .orElseThrow(() -> CategoryNotFoundException.of(mainCategoryName));
+
+        Category subCategory = mainCategory.findSubCategory(subCategoryName)
+                .orElseThrow(() -> CategoryNotFoundException.of(subCategoryName));
+
+        if (!subCategoryName.equals(houseCategory.getName()) 
+                && mainCategory.findSubCategory(houseCategory.getName()).isPresent()) {
+            throw CategoryAlreadyExistsException.of(houseCategory.getName());
+        }
+        setCategoryFields(subCategory, houseCategory);
     }
 
     @Override
     public List<Category> getAllCategories(String username) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return getUserByName(username).getCategories();
     }
 
     @Override
-    public List<Category> getSubCategories(String username, String mainCategory) throws
-            CategoryNotFoundException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public List<Category> getSubCategories(String username, String mainCategory)
+            throws CategoryNotFoundException {
+        
+        return getUserByName(username).findCategory(mainCategory)
+                .orElseThrow(()->CategoryNotFoundException.of(mainCategory)).getSubCategories();
     }
 
     @Override
@@ -229,5 +268,4 @@ public class MyBudgetDao implements MyBudgetDaoLocal {
     void setCategoryFields(Category category, Category withValues) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
 }

@@ -102,5 +102,4 @@ public class Category implements Serializable {
     public List<Category> getSubCategories() {
         return new LinkedList<>(subCategories);
     }
-
 }

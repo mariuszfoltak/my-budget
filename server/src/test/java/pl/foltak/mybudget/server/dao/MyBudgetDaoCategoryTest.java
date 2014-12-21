@@ -38,7 +38,7 @@ public class MyBudgetDaoCategoryTest {
     private MyBudgetDao instance;
     private User user;
     private Category foodCategory;
-    private Category subCategory;
+    private Category candyCategory;
     private Category houseCategory;
 
     @Before
@@ -46,7 +46,7 @@ public class MyBudgetDaoCategoryTest {
         instance = spy(new MyBudgetDao());
         user = mock(User.class);
         foodCategory = mock(Category.class);
-        subCategory = mock(Category.class);
+        candyCategory = mock(Category.class);
         houseCategory = mock(Category.class);
 
         doReturn(user).when(instance).getUserByName(USERNAME);
@@ -54,8 +54,8 @@ public class MyBudgetDaoCategoryTest {
         when(user.findCategory(FOOD)).thenReturn(Optional.of(foodCategory));
         when(foodCategory.getName()).thenReturn(FOOD);
         when(foodCategory.findSubCategory(any())).thenReturn(Optional.ofNullable(null));
-        when(foodCategory.findSubCategory(CANDY)).thenReturn(Optional.of(subCategory));
-        when(subCategory.getName()).thenReturn(CANDY);
+        when(foodCategory.findSubCategory(CANDY)).thenReturn(Optional.of(candyCategory));
+        when(candyCategory.getName()).thenReturn(CANDY);
         when(houseCategory.getName()).thenReturn(HOUSE);
     }
 
@@ -199,144 +199,195 @@ public class MyBudgetDaoCategoryTest {
         instance.updateMainCategory(USERNAME, HOUSE, categoryValues);
     }
 
-//
-//    @Test
-//    public void testAddSecondLevelCategoryAddCategoryToParentCategory() {
-//        instance.addSubCategory(FOOD, houseCategory);
-//        verify(mainCategory).addSubCategory(houseCategory);
-//    }
-//
-//    @Test
-//    public void testAddSecondLevelCategoryReturnCreatedStatusCode() {
-//        Response response = instance.addSubCategory(FOOD, houseCategory);
-//        assertEquals("Status code isn't equal to 201", 201, response.getStatus());
-//    }
-//
-//    @Test
-//    public void testReturnLocationHeaderWhenAddingSubcategory() {
-//        Response response = instance.addSubCategory(FOOD, houseCategory);
-//        assertEquals("Location header isn't equal to new category", createURI(FOOD, HOUSE),
-//                response.getLocation());
-//    }
-//
-//    @Test(expected = NotFoundException.class)
-//    public void testThrowNotFoundWhenCreatingSubcategoryAndMainCategoryDoesntExist() {
-//        instance.addSubCategory("nonexistent", houseCategory);
-//    }
-//
-//    @Test
-//    public void testThrowConflictWhenCreatingSubcategoryAlreadyExist() {
-//        try {
-//            instance.addSubCategory(FOOD, subCategory);
-//            expectedException(ConflictException.class);
-//        } catch (Exception e) {
-//            verify(mainCategory, never()).addSubCategory(any());
-//        }
-//    }
-//
-//    @Test
-//    public void testUpdateEntityWhenRemovingSubcategory() {
-//        instance.removeSubCategory(FOOD, CANDY);
-//        verify(mainCategory).removeSubCategory(subCategory);
-//    }
-//
-//    @Test
-//    public void testReturnOkStatusWhenRemovingSubcategory() {
-//        Response response = instance.removeSubCategory(FOOD, CANDY);
-//        assertEquals("Status code isn't equal to 200 OK", 200, response.getStatus());
-//    }
-//
-//    @Test(expected = NotFoundException.class)
-//    public void testThrowNotFoundWhenRemovingSubcategoryAndParentCategoryDoesntExist() {
-//        instance.removeSubCategory("nonexistent", CANDY);
-//    }
-//
-//    @Test
-//    public void testThrowNotFoundExceptionWhenRemovingSubcategoryThatDoesntExist() {
-//        try {
-//            instance.removeSubCategory(FOOD, "nonexistent");
-//            expectedException(NotFoundException.class);
-//        } catch (NotFoundException e) {
-//            verify(mainCategory, never()).removeSubCategory(any());
-//        }
-//
-//    }
-//
-//    @Test
-//    public void testThrowBadRequestExceptionWhenRemovingSubcategoryThatHasTransactions() {
-//        when(subCategory.hasTransactions()).thenReturn(Boolean.TRUE);
-//        try {
-//            instance.removeSubCategory(FOOD, CANDY);
-//            expectedException(BadRequestException.class);
-//        } catch (Exception e) {
-//            verify(mainCategory, never()).removeSubCategory(any());
-//        }
-//    }
-//
-//    @Test
-//    public void testReturnOkStatusWhenModifingSubcategory() {
-//        Response response = instance.editSubCategory(FOOD, CANDY, houseCategory);
-//        assertEquals("Status code isn't equal to 200 OK", 200, response.getStatus());
-//    }
-//
-//    @Test
-//    public void testUpdateEntityWhenModifingSubcategory() {
-//        instance.editSubCategory(FOOD, CANDY, houseCategory);
-//        verify(subCategory, times(1)).setName(HOUSE);
-//    }
-//
-//    @Test(expected = NotFoundException.class)
-//    public void testThrowNotFoundExceptionWhenMainCategoryDoesntExist() {
-//        instance.editSubCategory("nonexistent", CANDY, houseCategory);
-//    }
-//
-//    @Test(expected = NotFoundException.class)
-//    public void testThrowNotFoundExceptionWhenSubCategoryDoesntExist() {
-//        instance.editSubCategory(FOOD, "nonexistent", houseCategory);
-//    }
-//
-//    @Test
-//    public void testThrowConflictExceptionWhenSubCategoryWithNewNameAlreadyExist() {
-//        when(mainCategory.findSubCategory(CANDY)).thenReturn(Optional.of(subCategory));
-//        when(subCategory.getName()).thenReturn(CANDY);
-//        try {
-//            instance.editSubCategory(FOOD, CANDY, subCategory);
-//            expectedException(ConflictException.class);
-//        } catch (ConflictException e) {
-//            verify(subCategory, never()).setName(any());
-//        }
-//    }
-//
-//    @Test
-//    public void testReturnOkStatusWhenGettingAllCategories() {
-//        int statusCode = instance.getAllCategories().getStatus();
-//        assertEquals("Incorrect status code", 200, statusCode);
-//    }
-//
-//    @Test
-//    public void testReturnCategoriesListWhenGettingAllCategories() {
-//        List<Category> categories = mock(List.class);
-//        when(user.getCategories()).thenReturn(categories);
-//        List<Category> result = (List<Category>) instance.getAllCategories().getEntity();
-//        assertEquals("List of categories it's not equals", categories, result);
-//    }
-//
-//    @Test
-//    public void testReturnOkStatusWhenGettingSubcategories() {
-//        final int statusCode = instance.getSubcategories(FOOD).getStatus();
-//        assertEquals("Incorrect status code", 200, statusCode);
-//    }
-//
-//    @Test
-//    public void testReturnCategoriesListWhenGettingSubcategories() {
-//        List<Category> categories = mock(List.class);
-//        when(mainCategory.getSubCategories()).thenReturn(categories);
-//        List<Category> result = (List<Category>) instance.getSubcategories(FOOD).getEntity();
-//        assertEquals("List of categories it's not equals", categories, result);
-//    }
-//
-//    @Test(expected = NotFoundException.class)
-//    public void testThrowNotFoundExceptionWhenGettingSubcategoriesFromCategoryThatDoesntExist() {
-//        instance.getSubcategories("nonexistent");
-//    }
+    /**
+     * Method addSubCategory should add a sub category to parent category.
+     *
+     * @throws CategoryNotFoundException
+     * @throws CategoryAlreadyExistsException
+     */
+    @Test
+    public void isSubCategoryAddedToParentCategory()
+            throws CategoryNotFoundException, CategoryAlreadyExistsException {
+
+        instance.addSubCategory(USERNAME, FOOD, houseCategory);
+        verify(foodCategory).addSubCategory(houseCategory);
+    }
+
+    /**
+     * Method addSubCategory should throw CategoryNotFoundException if main category doesn't exists.
+     *
+     * @throws CategoryNotFoundException
+     * @throws CategoryAlreadyExistsException
+     */
+    @Test(expected = CategoryNotFoundException.class)
+    public void isCategoryNotFoundExceptionThrownWhenCreatingSubcategoryAndMainCategoryDoesntExist()
+            throws CategoryNotFoundException, CategoryAlreadyExistsException {
+
+        instance.addSubCategory(USERNAME, NONEXISTENT, houseCategory);
+    }
+
+    /**
+     * Method should throw CategoryAlreadyExistsException when sub category already exists.
+     *
+     * @throws CategoryNotFoundException
+     * @throws CategoryAlreadyExistsException
+     */
+    @Test(expected = CategoryAlreadyExistsException.class)
+    public void isCategoryAlreadyExistsExceptionThrownWhenAddingSubCategoryAlreadyExist()
+            throws CategoryNotFoundException, CategoryAlreadyExistsException {
+
+        instance.addSubCategory(USERNAME, FOOD, candyCategory);
+    }
+
+    /**
+     * Method removeSubCategory should remove a sub category from main category.
+     *
+     * @throws CategoryNotFoundException
+     * @throws CategoryCantBeRemovedException
+     */
+    @Test
+    public void isSubCategoryRemoved()
+            throws CategoryNotFoundException, CategoryCantBeRemovedException {
+
+        instance.removeSubCategory(USERNAME, FOOD, CANDY);
+        verify(foodCategory).removeSubCategory(candyCategory);
+    }
+
+    /**
+     * Method removeSubCategory should throw CategoryNotFoundException if main category doesn't
+     * exist.
+     *
+     * @throws CategoryNotFoundException
+     * @throws CategoryCantBeRemovedException
+     */
+    @Test(expected = CategoryNotFoundException.class)
+    public void isCategoryNotFoundExceptionThrownWhenRemovingSubCategoryButMainCategoryDoesntExist()
+            throws CategoryNotFoundException, CategoryCantBeRemovedException {
+
+        instance.removeSubCategory(USERNAME, NONEXISTENT, CANDY);
+    }
+
+    /**
+     * Method removeSubCategory should throw CategoryNotFoundException if sub category doesn't
+     * exist.
+     *
+     * @throws CategoryNotFoundException
+     * @throws CategoryCantBeRemovedException
+     */
+    @Test(expected = CategoryNotFoundException.class)
+    public void isCategoryNotFoundExceptionThrownWhenRemovingSubcategoryThatDoesntExist()
+            throws CategoryNotFoundException, CategoryCantBeRemovedException {
+
+        instance.removeSubCategory(USERNAME, FOOD, NONEXISTENT);
+    }
+
+    /**
+     * Method removeSubCategory should throw CategoryCantBeRemovedException when sub category has a
+     * transactions.
+     *
+     * @throws CategoryNotFoundException
+     * @throws CategoryCantBeRemovedException
+     */
+    @Test(expected = CategoryCantBeRemovedException.class)
+    public void isCategoryCantBeRemovedExceptionThrownWhenRemovingSubCategoryThatHasTransactions()
+            throws CategoryNotFoundException, CategoryCantBeRemovedException {
+
+        when(candyCategory.hasTransactions()).thenReturn(Boolean.TRUE);
+        instance.removeSubCategory(USERNAME, FOOD, CANDY);
+    }
+
+    /**
+     * Method updateSubCategory should update entity.
+     *
+     * @throws CategoryNotFoundException
+     * @throws CategoryAlreadyExistsException
+     */
+    @Test
+    public void isSubCategoryUpdated()
+            throws CategoryNotFoundException, CategoryAlreadyExistsException {
+
+        doNothing().when(instance).setCategoryFields(any(), any());
+        instance.updateSubCategory(USERNAME, FOOD, CANDY, candyCategory);
+        verify(instance).setCategoryFields(candyCategory, candyCategory);
+    }
+
+    /**
+     * Method updateSubCategory should throw CategoryNotFoundException when main category doesn't
+     * exist.
+     *
+     * @throws CategoryNotFoundException
+     * @throws CategoryAlreadyExistsException
+     */
+    @Test(expected = CategoryNotFoundException.class)
+    public void isCategoryNotFoundExceptionThrownWhenMainCategoryDoesntExist()
+            throws CategoryNotFoundException, CategoryAlreadyExistsException {
+
+        instance.updateSubCategory(USERNAME, NONEXISTENT, CANDY, houseCategory);
+    }
+
+    /**
+     * Method updateSubCategory should throw CategoryNotFoundException when sub category doesn't
+     * exist.
+     *
+     * @throws CategoryNotFoundException
+     * @throws CategoryAlreadyExistsException
+     */
+    @Test(expected = CategoryNotFoundException.class)
+    public void isCategoryNotFoundExceptionThrownWhenSubCategoryDoesntExist()
+            throws CategoryNotFoundException, CategoryAlreadyExistsException {
+
+        instance.updateSubCategory(USERNAME, FOOD, NONEXISTENT, houseCategory);
+    }
+
+    /**
+     * Method updateSubCategory should throw CategoryAlreadyExistsException if sub category with new
+     * name already exists.
+     *
+     * @throws CategoryNotFoundException
+     * @throws CategoryAlreadyExistsException
+     */
+    @Test(expected = CategoryAlreadyExistsException.class)
+    public void isCategoryAlreadyExistsExceptionThrownWhenSubCategoryWithNewNameAlreadyExist()
+            throws CategoryNotFoundException, CategoryAlreadyExistsException {
+
+        when(foodCategory.findSubCategory("fruits")).thenReturn(Optional.of(mock(Category.class)));
+        instance.updateSubCategory(USERNAME, FOOD, "fruits", candyCategory);
+    }
+
+    /**
+     * Method should return categories list of user.
+     */
+    @Test
+    public void testReturnCategoriesListWhenGettingAllCategories() {
+        List<Category> categories = mock(List.class);
+        when(user.getCategories()).thenReturn(categories);
+        List<Category> result = (List<Category>) instance.getAllCategories(USERNAME);
+        assertEquals("List of categories it's not equals", categories, result);
+    }
+
+    /**
+     * Method should return sub categories list of main category.
+     *
+     * @throws CategoryNotFoundException
+     */
+    @Test
+    public void isSubCategoriesListReturnWhenGettingSubCategories() throws CategoryNotFoundException {
+        List<Category> categories = mock(List.class);
+        when(foodCategory.getSubCategories()).thenReturn(categories);
+        List<Category> result = (List<Category>) instance.getSubCategories(USERNAME, FOOD);
+        assertEquals("List of categories it's not equals", categories, result);
+    }
+
+    /**
+     * Method getSubCategories should throw CategoryNotFoundException if main category doesn't
+     * exist.
+     *
+     * @throws CategoryNotFoundException
+     */
+    @Test(expected = CategoryNotFoundException.class)
+    public void isCategoryNotFoundExceptionThrownWhenGettingSubCategoriesFromCategoryThatDoesntExist()
+            throws CategoryNotFoundException {
+
+        instance.getSubCategories(USERNAME, NONEXISTENT);
+    }
 }
