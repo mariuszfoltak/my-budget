@@ -235,7 +235,7 @@ public class MyBudgetDao implements MyBudgetDaoLocal {
 
     @Override
     public List<Tag> getTags(String username) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return getUserByName(username).getTags();
     }
 
     @Override
