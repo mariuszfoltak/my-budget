@@ -22,7 +22,7 @@ import pl.foltak.mybudget.server.entity.User;
  *
  * @author Mariusz Foltak <mariusz@foltak.pl>
  */
-public class MyBudgetDaoTest {
+public class MyBudgetDaoAccountTest {
 
     private static final String BANK = "Bank";
     private static final String WALLET = "wallet";

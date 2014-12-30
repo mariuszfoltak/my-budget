@@ -1,19 +1,11 @@
 package pl.foltak.mybudget.server.dao;
 
-import pl.foltak.mybudget.server.rest.*;
-import java.net.URI;
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.BadRequestException;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.core.Response;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
-import static org.mockito.AdditionalMatchers.not;
 import static org.mockito.Mockito.*;
 import pl.foltak.mybudget.server.dao.exception.CategoryAlreadyExistsException;
 import pl.foltak.mybudget.server.dao.exception.CategoryCantBeRemovedException;
@@ -21,7 +13,6 @@ import pl.foltak.mybudget.server.dao.exception.CategoryNotFoundException;
 import pl.foltak.mybudget.server.entity.Category;
 import pl.foltak.mybudget.server.entity.User;
 import static pl.foltak.mybudget.server.test.TestUtils.expectedException;
-import pl.foltak.mybudget.server.rest.exception.ConflictException;
 
 /**
  *

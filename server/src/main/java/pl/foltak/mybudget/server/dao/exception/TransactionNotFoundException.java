@@ -9,9 +9,4 @@ public class TransactionNotFoundException extends Exception {
     public TransactionNotFoundException(String message, Throwable cause) {
         super(message, cause);
     }
-
-    public String getCategoryName() {
-        return null;
-    }
-    
 }
