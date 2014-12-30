@@ -44,7 +44,7 @@ public class MyBudgetDao implements MyBudgetDaoLocal {
     public void addAccount(String username, Account account) throws AccountAlreadyExistsException {
         final User user = getUserByName(username);
         if (user.findAccount(account.getName()).isPresent()) {
-            throw new AccountAlreadyExistsException();
+            throw AccountAlreadyExistsException.of(account.getName());
         }
         user.addAccount(account);
     }
@@ -67,7 +67,7 @@ public class MyBudgetDao implements MyBudgetDaoLocal {
                 .orElseThrow(AccountNotFoundException::new);
 
         if (user.findAccount(account.getName()).isPresent()) {
-            throw new AccountAlreadyExistsException();
+            throw AccountAlreadyExistsException.of(account.getName());
         }
 
         setAccountFields(get, account);

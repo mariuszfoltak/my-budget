@@ -2,10 +2,13 @@ package pl.foltak.mybudget.server.dao;
 
 import java.util.List;
 import java.util.Optional;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -178,5 +181,18 @@ public class MyBudgetDaoAccountTest {
         final List accounts = mock(List.class);
         when(user.getAccounts()).thenReturn(accounts);
         assertSame(accounts, instance.getAccounts(USERNAME));
+    }
+    
+    /**
+     * Method setAccountFields should set name of an account entity.
+     */
+    @Test
+    public void isEntityFieldsSet() {
+        Account account = new Account();
+        Account values = new Account();
+        values.setName(BANK);
+        doCallRealMethod().when(instance).setAccountFields(account, values);
+        instance.setAccountFields(account, values);
+        assertThat(account.getName(), is(BANK));
     }
 }
