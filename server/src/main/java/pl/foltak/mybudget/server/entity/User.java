@@ -141,4 +141,12 @@ public class User implements Serializable {
     public List<Tag> getTags() {
         return new LinkedList<>(tags);
     }
+
+    public Optional<Transaction> findTransaction(long id) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    public void removeTransaction(Transaction transaction) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

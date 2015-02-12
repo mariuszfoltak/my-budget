@@ -6,7 +6,12 @@ package pl.foltak.mybudget.server.dao.exception;
  */
 public class TransactionNotFoundException extends Exception {
 
-    public TransactionNotFoundException(String message, Throwable cause) {
-        super(message, cause);
+    static public TransactionNotFoundException of(long id) {
+        String message = String.format("Transaction with id: %s doesn't exist", id);
+        return new TransactionNotFoundException(message);
+    }
+    
+    public TransactionNotFoundException(String message) {
+        super(message);
     }
 }

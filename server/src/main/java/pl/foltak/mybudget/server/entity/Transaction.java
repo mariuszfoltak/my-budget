@@ -11,6 +11,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.Temporal;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 
 /**
  * Transaction entity.
@@ -21,10 +22,10 @@ import lombok.NonNull;
 public class Transaction implements Serializable {
 
     @Id @Getter private Long id;
-    private String description;
-    private String amount;
+    @Getter @Setter private String description;
+    @Getter @Setter private Double amount;
     @Temporal(javax.persistence.TemporalType.DATE)
-    private Date transactionDate;
+    @Getter @Setter private Date transactionDate;
 
     @ManyToMany List<Tag> tags;
 

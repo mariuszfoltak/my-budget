@@ -16,6 +16,7 @@ import pl.foltak.mybudget.server.dto.TransactionDTO;
 import pl.foltak.mybudget.server.entity.Account;
 import pl.foltak.mybudget.server.entity.Category;
 import pl.foltak.mybudget.server.entity.Tag;
+import pl.foltak.mybudget.server.entity.Transaction;
 import pl.foltak.mybudget.server.entity.User;
 
 /**
@@ -26,7 +27,6 @@ import pl.foltak.mybudget.server.entity.User;
 @Stateless
 public class MyBudgetDao implements MyBudgetDaoLocal {
 
-    private static final String CATEGORY_DOESNT_EXIST = "Category %s doesn't exist";
     private static final String SELECT_USER = "SELECT u FROM users AS u WHERE u.username = :username";
 
     @PersistenceContext(name = "pl.foltak.my-budget")
@@ -64,7 +64,7 @@ public class MyBudgetDao implements MyBudgetDaoLocal {
 
         final User user = getUserByName(username);
         Account get = user.findAccount(accountName)
-                .orElseThrow(AccountNotFoundException::new);
+                .orElseThrow(() -> AccountNotFoundException.of(accountName));
 
         if (user.findAccount(account.getName()).isPresent()) {
             throw AccountAlreadyExistsException.of(account.getName());
@@ -86,7 +86,8 @@ public class MyBudgetDao implements MyBudgetDaoLocal {
             AccountCantBeRemovedException {
 
         final User user = getUserByName(username);
-        Account account = user.findAccount(accountName).orElseThrow(AccountNotFoundException::new);
+        Account account = user.findAccount(accountName)
+                .orElseThrow(() -> AccountNotFoundException.of(accountName));
 
         if (account.hasTransactions()) {
             throw new AccountCantBeRemovedException();
@@ -152,6 +153,7 @@ public class MyBudgetDao implements MyBudgetDaoLocal {
         user.removeCategory(category);
     }
 
+    // TODO: add comment
     @Override
     public void updateMainCategory(String username, String categoryName, Category categoryValues)
             throws CategoryNotFoundException, CategoryAlreadyExistsException {
@@ -186,6 +188,7 @@ public class MyBudgetDao implements MyBudgetDaoLocal {
         mainCategory.addSubCategory(houseCategory);
     }
 
+    // TODO: add comment
     @Override
     public void removeSubCategory(String USERNAME, String FOOD, String CANDY) throws
             CategoryNotFoundException, CategoryCantBeRemovedException {
@@ -203,6 +206,7 @@ public class MyBudgetDao implements MyBudgetDaoLocal {
         mainCategory.removeSubCategory(subCategory);
     }
 
+    // TODO: add comment
     @Override
     public void updateSubCategory(String username, String mainCategoryName, String subCategoryName,
             Category houseCategory) throws CategoryNotFoundException, CategoryAlreadyExistsException {
@@ -213,46 +217,130 @@ public class MyBudgetDao implements MyBudgetDaoLocal {
         Category subCategory = mainCategory.findSubCategory(subCategoryName)
                 .orElseThrow(() -> CategoryNotFoundException.of(subCategoryName));
 
-        if (!subCategoryName.equals(houseCategory.getName()) 
+        if (!subCategoryName.equals(houseCategory.getName())
                 && mainCategory.findSubCategory(houseCategory.getName()).isPresent()) {
             throw CategoryAlreadyExistsException.of(houseCategory.getName());
         }
         setCategoryFields(subCategory, houseCategory);
     }
 
+    // TODO: add comment
     @Override
     public List<Category> getAllCategories(String username) {
         return getUserByName(username).getCategories();
     }
 
+    // TODO: add comment
     @Override
     public List<Category> getSubCategories(String username, String mainCategory)
             throws CategoryNotFoundException {
-        
+
         return getUserByName(username).findCategory(mainCategory)
-                .orElseThrow(()->CategoryNotFoundException.of(mainCategory)).getSubCategories();
+                .orElseThrow(() -> CategoryNotFoundException.of(mainCategory)).getSubCategories();
     }
 
+    // TODO: add comment
     @Override
     public List<Tag> getTags(String username) {
         return getUserByName(username).getTags();
     }
 
+    // TODO: add comment
     @Override
     public void addTransaction(String USERNAME, TransactionDTO transactionDTO) throws
             AccountNotFoundException, CategoryNotFoundException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+        String accountName = transactionDTO.getAccountName();
+        String mainCategoryName = transactionDTO.getMainCategoryName();
+        String subCategoryName = transactionDTO.getSubCategoryName();
+
+        User user = getUserByName(USERNAME);
+        Transaction transaction = convertTransaction(transactionDTO);
+
+        user.findAccount(accountName)
+                .orElseThrow(() -> AccountNotFoundException.of(accountName))
+                .addTransaction(transaction);
+
+        findSubCategory(user, mainCategoryName, subCategoryName)
+                .addTransaction(transaction);
+
+        for (String tagName : transactionDTO.getTags()) {
+            Tag tag = findOrCreateTag(tagName);
+            transaction.addTag(tag);
+        }
     }
 
+    /**
+     * Updates transaction using given TransactionDTO object.
+     *
+     * @param username name of the user to which transactions belongs
+     * @param transactionDTO a dto object representing new values of transaction
+     *
+     * @throws AccountNotFoundException when account doesn't exist
+     * @throws TransactionNotFoundException when a transaction with given id doesn't exist
+     * @throws CategoryNotFoundException when a category doesn't exist
+     */
     @Override
-    public void updateTransaction(String USERNAME, TransactionDTO transactionDTO) throws
+    public void updateTransaction(String username, TransactionDTO transactionDTO) throws
             AccountNotFoundException, TransactionNotFoundException, CategoryNotFoundException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+        User user = getUserByName(username);
+        String mainCategoryName = transactionDTO.getMainCategoryName();
+        String subCategoryName = transactionDTO.getSubCategoryName();
+
+        Account account = findAccount(user, transactionDTO.getAccountName());
+        Category subCategory = findSubCategory(user, mainCategoryName, subCategoryName);
+        Transaction transaction = findTransaction(user, transactionDTO.getId());
+
+        updateTransaction(transaction, transactionDTO);
+        account.addTransaction(transaction);
+        subCategory.addTransaction(transaction);
+        updateTags(transaction, transactionDTO);
+    }
+
+    private Transaction findTransaction(User user, long id)
+            throws TransactionNotFoundException {
+
+        return user.findTransaction(id)
+                .orElseThrow(() -> TransactionNotFoundException.of(id));
+    }
+
+    private static Category findSubCategory(User user, String mainCategoryName,
+            String subCategoryName) throws CategoryNotFoundException {
+        return user.findCategory(mainCategoryName)
+                .orElseThrow(() -> CategoryNotFoundException.of(mainCategoryName))
+                .findSubCategory(subCategoryName)
+                .orElseThrow(() -> CategoryNotFoundException.of(subCategoryName));
+    }
+
+    private Account findAccount(User user, String accountName)
+            throws AccountNotFoundException {
+
+        return user.findAccount(accountName)
+                .orElseThrow(() -> AccountNotFoundException.of(accountName));
+    }
+
+    private void updateTags(Transaction transaction, TransactionDTO transactionDTO) {
+        transaction.clearTags();
+        for (String tag : transactionDTO.getTags()) {
+            transaction.addTag(findOrCreateTag(tag));
+        }
     }
 
     @Override
-    public void removeTransaction(String USERNAME, long ID_47) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void removeTransaction(String USERNAME, long ID_47) throws TransactionNotFoundException {
+        User user = getUserByName(USERNAME);
+        Transaction transaction = user.findTransaction(ID_47)
+                .orElseThrow(() -> TransactionNotFoundException.of(ID_47));
+        user.removeTransaction(transaction);
+    }
+
+    Transaction convertTransaction(TransactionDTO transactionDTO) {
+        Transaction transaction = new Transaction();
+        transaction.setAmount(transactionDTO.getAmount());
+        transaction.setDescription(transactionDTO.getDescription());
+        transaction.setTransactionDate(transactionDTO.getTransactionDate());
+        return transaction;
     }
 
     User getUserByName(String username) {
@@ -266,6 +354,14 @@ public class MyBudgetDao implements MyBudgetDaoLocal {
     }
 
     void setCategoryFields(Category category, Category withValues) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    Tag findOrCreateTag(String FIRST_TAG) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    void updateTransaction(Transaction transaction, TransactionDTO transactionDTO) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }
