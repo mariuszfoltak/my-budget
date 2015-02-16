@@ -62,7 +62,7 @@ public class AccountServiceTest {
     @Test
     public void isLocationHeaderReturnedWhenAccountIsCreated() {
         Response response = instance.createAccount(bankAccount);
-        assertEquals("Location header isn't correct", URI.create("account/bank"),
+        assertEquals("Location header isn't correct", URI.create("accounts/bank"),
                 response.getLocation());
     }
 

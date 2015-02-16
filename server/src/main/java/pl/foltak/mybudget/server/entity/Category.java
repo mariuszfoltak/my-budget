@@ -5,6 +5,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
@@ -20,8 +22,7 @@ import lombok.Setter;
 @Entity
 public class Category implements Serializable {
 
-    @Id
-     long id;
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) long id;
 
     @Getter @Setter private String name;
 

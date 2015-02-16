@@ -31,6 +31,8 @@ import pl.foltak.mybudget.server.rest.exception.ConflictException;
 @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 public class AccountService extends AbstractService {
 
+    private final URICreator uriCreator = new URICreator("accounts");
+
     /**
      * Creates new account.
      *
@@ -46,8 +48,7 @@ public class AccountService extends AbstractService {
         } catch (AccountAlreadyExistsException ex) {
             throw new ConflictException(ex.getMessage(), ex);
         }
-        // TODO: stworzyć uriCreator
-        return Response.created(URI.create("account/" + account.getName())).build();
+        return Response.created(uriCreator.create(account.getName())).build();
     }
 
     /**

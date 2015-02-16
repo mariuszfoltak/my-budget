@@ -6,6 +6,8 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.Temporal;
@@ -21,7 +23,7 @@ import lombok.Setter;
 @Entity
 public class Transaction implements Serializable {
 
-    @Id @Getter private Long id;
+    @Id @Getter @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
     @Getter @Setter private String description;
     @Getter @Setter private Double amount;
     @Temporal(javax.persistence.TemporalType.DATE)

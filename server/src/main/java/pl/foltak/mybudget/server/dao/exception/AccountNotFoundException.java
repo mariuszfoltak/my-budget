@@ -7,7 +7,7 @@ package pl.foltak.mybudget.server.dao.exception;
 public class AccountNotFoundException extends Exception {
 
     public static AccountNotFoundException of(String accountName) {
-        String message = String.format("Account %s already exists", accountName);
+        String message = String.format("Account %s doesn't exist", accountName);
         return new AccountNotFoundException(message);
     }
     

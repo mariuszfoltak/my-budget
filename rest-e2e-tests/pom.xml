@@ -30,14 +30,15 @@
         <dependency>
             <groupId>info.cukes</groupId>
             <artifactId>cucumber-java</artifactId>
-            <version>1.2.2</version>
+            <version>1.2.0</version>
             <scope>test</scope>
+            <type>jar</type>
         </dependency>
 
         <dependency>
             <groupId>info.cukes</groupId>
             <artifactId>cucumber-junit</artifactId>
-            <version>1.2.2</version>
+            <version>1.2.0</version>
             <scope>test</scope>
         </dependency>
 
