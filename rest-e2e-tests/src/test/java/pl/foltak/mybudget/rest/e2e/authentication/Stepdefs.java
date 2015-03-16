@@ -1,6 +1,5 @@
 package pl.foltak.mybudget.rest.e2e.authentication;
 
-import pl.foltak.mybudget.rest.e2e.accounts.*;
 import pl.foltak.mybudget.rest.e2e.helper.SimpleDao;
 import pl.foltak.mybudget.rest.e2e.helper.MySqlSimpleDao;
 import static com.jayway.restassured.RestAssured.given;

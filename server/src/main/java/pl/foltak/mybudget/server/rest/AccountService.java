@@ -40,7 +40,7 @@ public class AccountService extends AbstractService {
      * @return 201 Created when the account was created or 409 Conflict when the account already
      * exists
      */
-    @PUT
+    @POST
     @Path("/")
     public Response createAccount(Account account) {
         try {

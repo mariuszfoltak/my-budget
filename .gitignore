@@ -3,3 +3,4 @@ target/
 
 # Ignore netbeans configuration file
 nb-configuration.xml
+/web-client/nbproject/private/

@@ -1,4 +1,4 @@
-package pl.foltak.mybudget.rest.e2e.authentication;
+package pl.foltak.mybudget.rest.e2e.category;
 
 import cucumber.api.CucumberOptions;
 import cucumber.api.junit.Cucumber;

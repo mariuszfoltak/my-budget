@@ -49,7 +49,7 @@ Feature: Accounts
     | name      | account1  | account2  |
     | wallet    | bank      | my socks  |
     | my socks  | bank      | wallet    |
-    | bank      | wallet      | my socks  |
+    | bank      | wallet    | my socks  |
 
   Scenario: Remove account that does not exist
     When I remove "stone" account

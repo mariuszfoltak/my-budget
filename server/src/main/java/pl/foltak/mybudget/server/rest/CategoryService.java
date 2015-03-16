@@ -83,7 +83,7 @@ public class CategoryService extends AbstractService {
 
     @POST
     @Path("/{mainCategory}/{subCategory}")
-    Response editSubCategory(@PathParam("mainCategory") String mainCategoryName,
+    public Response editSubCategory(@PathParam("mainCategory") String mainCategoryName,
             @PathParam("subCategory") String subCategoryName, Category category) {
         
         try {
