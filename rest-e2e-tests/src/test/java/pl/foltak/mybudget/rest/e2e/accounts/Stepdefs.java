@@ -42,7 +42,7 @@ public class Stepdefs {
     public void addAccount(String accountName) {
         response = given()
                 .body("{\"name\": \"" + accountName + "\"}")
-                .put("/accounts")
+                .post("/accounts")
                 .then();
     }
 

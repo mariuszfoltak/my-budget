@@ -20,7 +20,6 @@ import lombok.NonNull;
  *
  * @author Mariusz Foltak <mariusz@foltak.pl>
  */
-//TODO: Change table name
 @Entity(name = "users")
 public class User implements Serializable {
 
@@ -32,11 +31,11 @@ public class User implements Serializable {
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
     List<Category> categories;
-    
+
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
     List<Account> accounts;
-    
+
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
     List<Tag> tags;

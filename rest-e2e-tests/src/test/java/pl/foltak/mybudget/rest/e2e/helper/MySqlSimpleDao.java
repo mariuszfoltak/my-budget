@@ -40,9 +40,9 @@ public class MySqlSimpleDao implements SimpleDao {
 
     @Override
     public void clearAllTables() {
-        jdbcTemplate.execute("delete from Transaction");
-        jdbcTemplate.execute("delete from Category");
-        jdbcTemplate.execute("delete from Account");
+        jdbcTemplate.execute("delete from transactions");
+        jdbcTemplate.execute("delete from categories");
+        jdbcTemplate.execute("delete from accounts");
         jdbcTemplate.execute("delete from users");
     }
 
@@ -53,7 +53,7 @@ public class MySqlSimpleDao implements SimpleDao {
                 .addValue("user_id", userId);
 
         return new SimpleJdbcInsert(jdbcTemplate)
-                .withTableName("Account")
+                .withTableName("accounts")
                 .usingGeneratedKeyColumns("id")
                 .executeAndReturnKey(parameters)
                 .longValue();
@@ -67,7 +67,7 @@ public class MySqlSimpleDao implements SimpleDao {
 
     @Override
     public Long getAccountId(Long userId, String accountName) {
-        final String sql = "Select id from Account where user_id = ? and name = ?";
+        final String sql = "Select id from accounts where user_id = ? and name = ?";
         return jdbcTemplate.queryForObject(sql, Long.class, userId, accountName);
     }
 
@@ -78,7 +78,7 @@ public class MySqlSimpleDao implements SimpleDao {
                 .addValue("user_id", userId);
 
         return new SimpleJdbcInsert(jdbcTemplate)
-                .withTableName("Category")
+                .withTableName("categories")
                 .usingGeneratedKeyColumns("id")
                 .executeAndReturnKey(parameters)
                 .longValue();
@@ -90,11 +90,11 @@ public class MySqlSimpleDao implements SimpleDao {
                 .addValue("account_id", accountId)
                 .addValue("category_id", categoryId)
                 .addValue("description", description)
-                .addValue("transactionDate", date)
+                .addValue("transaction_date", date)
                 .addValue("amount", amount);
 
         return new SimpleJdbcInsert(jdbcTemplate)
-                .withTableName("Transaction")
+                .withTableName("transactions")
                 .usingGeneratedKeyColumns("id")
                 .executeAndReturnKey(parameters)
                 .longValue();

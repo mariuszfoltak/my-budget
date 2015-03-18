@@ -9,7 +9,7 @@ import lombok.Getter;
  *
  * @author Mariusz Foltak <mariusz.foltak@coi.gov.pl>
  */
-@Entity
+@Entity(name = "tags")
 public class Tag implements Serializable {
 
     @Id

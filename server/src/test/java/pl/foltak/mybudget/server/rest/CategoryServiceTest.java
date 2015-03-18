@@ -54,7 +54,7 @@ public class CategoryServiceTest {
      */
     @Test
     public void isCreatedStatusReturnedWhenAddingMainCategory() {
-        Response response = instance.addMainCategory(mock(Category.class));
+        Response response = instance.addMainCategory(houseCategory);
         assertEquals("Status code isn't equal to 201,", 201, response.getStatus());
     }
 
@@ -416,11 +416,11 @@ public class CategoryServiceTest {
     }
 
     private static URI createURI(String firstLevelCategory, String secondLevelCategory) {
-        return URI.create("category/" + firstLevelCategory + "/" + secondLevelCategory);
+        return URI.create("categories/" + firstLevelCategory + "/" + secondLevelCategory);
     }
 
     private static URI createURI(String firstLevelCategory) {
-        return URI.create("category/" + firstLevelCategory);
+        return URI.create("categories/" + firstLevelCategory);
     }
 
 }

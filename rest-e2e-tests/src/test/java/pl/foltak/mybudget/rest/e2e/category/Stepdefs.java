@@ -61,11 +61,11 @@ public class Stepdefs {
 
 
     @Then("^I have (\\d+) categories: (.+)$")
-    public void checkAccounts(int count, List<String> categoriesNames) throws Throwable {
+    public void checkCategories(int count, List<String> categoriesNames) throws Throwable {
         given()
                 .get("/categories")
                 .then()
-                .body("categories", hasSize(count))
+                .body("", hasSize(count))
                 .and()
                 .body("name", hasItems(categoriesNames.toArray()));
     }

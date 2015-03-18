@@ -10,6 +10,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
+import javax.persistence.Transient;
+import javax.xml.bind.annotation.XmlTransient;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -19,7 +21,7 @@ import lombok.Setter;
  *
  * @author Mariusz Foltak <mariusz@foltak.pl>
  */
-@Entity
+@Entity(name = "categories")
 public class Category implements Serializable {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) long id;
@@ -100,6 +102,7 @@ public class Category implements Serializable {
      *
      * @return list of subcategories.
      */
+    @XmlTransient
     public List<Category> getSubCategories() {
         return new LinkedList<>(subCategories);
     }

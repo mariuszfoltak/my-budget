@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>pl.foltak.my-budget</groupId>
+        <artifactId>my-budget</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+  
+    <artifactId>database-schema</artifactId>
+  
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <db.host>localhost</db.host>
+        <db.port>3306</db.port>
+        <db.schema>mybudget</db.schema>
+        <db.user>mybudget</db.user>
+        <db.pass>mybudget</db.pass>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+                <version>3.2</version>
+                <configuration>
+                    <url>jdbc:mysql://${db.host}:${db.port}/${db.schema}</url>
+                    <user>${db.user}</user>
+                    <password>${db.pass}</password>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>mysql</groupId>
+                        <artifactId>mysql-connector-java</artifactId>
+                        <version>5.1.34</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+        </plugins>
+    </build>
+  
+</project>

@@ -18,7 +18,7 @@ import lombok.Setter;
  *
  * @author Mariusz Foltak <mariusz@foltak.pl>
  */
-@Entity
+@Entity(name = "accounts")
 public class Account implements Serializable {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;

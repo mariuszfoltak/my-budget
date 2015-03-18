@@ -10,7 +10,8 @@
     <modules>
         <module>server</module>
         <module>rest-e2e-tests</module>
-    </modules>
+    <module>database-schema</module>
+  </modules>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -52,7 +53,7 @@
     <profiles>
         <profile>
             <id>install-wildfy81</id>
-            <modules></modules>
+            <modules/>
             <build>
                 <plugins>
                     <!-- You need the maven dependency plugin to download locally a zip with the server, unless you provide your own, it will download under the /target directory -->

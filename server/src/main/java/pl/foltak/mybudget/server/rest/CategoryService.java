@@ -29,6 +29,8 @@ import pl.foltak.mybudget.server.rest.exception.ConflictException;
 @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 public class CategoryService extends AbstractService {
 
+    private final URICreator uriCreator = new URICreator("categories");
+
     @PUT
     @Path("/")
     public Response addMainCategory(Category category) {
@@ -37,7 +39,7 @@ public class CategoryService extends AbstractService {
         } catch (CategoryAlreadyExistsException ex) {
             throw new ConflictException(ex.getMessage(), ex);
         }
-        return Response.created(createURI(category)).build();
+        return Response.created(uriCreator.create(category.getName())).build();
     }
 
     @POST
@@ -49,7 +51,7 @@ public class CategoryService extends AbstractService {
         } catch (CategoryNotFoundException ex) {
             throw new NotFoundException(ex.getMessage(), ex);
         } catch (CategoryAlreadyExistsException ex) {
-            //TODO: add exception
+            throw new ConflictException(ex.getMessage(), ex);
         }
         return Response.ok().build();
     }
@@ -78,14 +80,14 @@ public class CategoryService extends AbstractService {
         } catch (CategoryAlreadyExistsException ex) {
             throw new ConflictException(ex.getMessage(), ex);
         }
-        return Response.created(createURI(mainCategoryName, category.getName())).build();
+        return Response.created(uriCreator.create(mainCategoryName, category.getName())).build();
     }
 
     @POST
     @Path("/{mainCategory}/{subCategory}")
     public Response editSubCategory(@PathParam("mainCategory") String mainCategoryName,
             @PathParam("subCategory") String subCategoryName, Category category) {
-        
+
         try {
             getDao().updateSubCategory(getUsername(), mainCategoryName, subCategoryName, category);
         } catch (CategoryNotFoundException ex) {
