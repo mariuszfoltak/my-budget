@@ -41,6 +41,7 @@ public class MySqlSimpleDao implements SimpleDao {
     @Override
     public void clearAllTables() {
         jdbcTemplate.execute("delete from transactions");
+        jdbcTemplate.execute("delete from categories where parent_id is not null");
         jdbcTemplate.execute("delete from categories");
         jdbcTemplate.execute("delete from accounts");
         jdbcTemplate.execute("delete from users");
@@ -75,6 +76,20 @@ public class MySqlSimpleDao implements SimpleDao {
     public Long createCategory(Long userId, String categoryName) {
         MapSqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("name", categoryName)
+                .addValue("user_id", userId);
+
+        return new SimpleJdbcInsert(jdbcTemplate)
+                .withTableName("categories")
+                .usingGeneratedKeyColumns("id")
+                .executeAndReturnKey(parameters)
+                .longValue();
+    }
+
+    @Override
+    public Long createSubCategory(Long userId, Long categoryId, String subCategoryName) {
+        MapSqlParameterSource parameters = new MapSqlParameterSource()
+                .addValue("name", subCategoryName)
+                .addValue("parent_id", categoryId)
                 .addValue("user_id", userId);
 
         return new SimpleJdbcInsert(jdbcTemplate)

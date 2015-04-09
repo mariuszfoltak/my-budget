@@ -1,8 +1,14 @@
 Feature: Categories
 
   Background: Users has categories
-    Given "Alibaba" user with categories: food, house, my car
-    And "Cassim" user with categories: food, bills, hobby
+    Given "Alibaba" user 
+    And "food" category with sub categories: fruits, candies, fastfood
+    And "house" category
+    And "my car" category
+    And "Cassim" user 
+    And "food" category
+    And "bills" category 
+    And "hobby" category with sub categories: fishing, football
     And I am "Alibaba" user
 
   Scenario Outline: Add category
@@ -47,7 +53,6 @@ Feature: Categories
 
     Examples:
     | name      | category1 | category2 |
-    | food      | house     | my car    |
     | house     | my car    | food      |
     | my car    | food      | house     |
 

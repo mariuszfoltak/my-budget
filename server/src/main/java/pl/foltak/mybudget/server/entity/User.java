@@ -14,6 +14,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import lombok.Getter;
 import lombok.NonNull;
+import org.hibernate.annotations.Where;
 
 /**
  * The account entity.
@@ -30,6 +31,7 @@ public class User implements Serializable {
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
+    @Where(clause = "parent_id is null")
     List<Category> categories;
 
     @OneToMany(cascade = CascadeType.ALL)

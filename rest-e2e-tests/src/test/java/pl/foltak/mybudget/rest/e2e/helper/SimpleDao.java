@@ -20,6 +20,8 @@ public interface SimpleDao {
 
     public Long createCategory(Long userId, String simple);
 
+    public Long createSubCategory(Long userId, Long categoryId, String subCategoryName);
+
     public Long createTransaction(Long accountId, Long categoryId, String simple, Double amount, Date date);
     
 }

@@ -21,16 +21,28 @@ public class Stepdefs {
     private final SimpleDao simpleDao = new MySqlSimpleDao();
     private String username;
     private ValidatableResponse response;
+    private Long userId;
 
     @Before @After
     public void clearDatabase() {
         simpleDao.clearAllTables();
     }
 
-    @Given("^\"(.*?)\" user with categories: (.+)$")
-    public void createUserWithCategories(String username, List<String> categories) {
-        Long userId = simpleDao.createUser(username, username);
-        categories.stream().forEach((categoryName) -> simpleDao.createCategory(userId, categoryName));
+    @Given("^\"(.*?)\" user$")
+    public void createUser(String username) {
+        userId = simpleDao.createUser(username, username);
+    }
+    
+    @Given("^\"(.*?)\" category$")
+    public void createCategory(String categoryName) {
+        simpleDao.createCategory(userId, categoryName);
+    }
+    
+    @Given("\"(.*?)\" category with sub categories: (.+)$")
+    public void createCategoryWithSubCategories(String categoryName, List<String> subCategories) {
+        Long categoryId = simpleDao.createCategory(userId, categoryName);
+        subCategories.stream().forEach((subCategoryName) -> 
+                simpleDao.createSubCategory(userId, categoryId, subCategoryName));
     }
 
     @Given("^I am \"(.*?)\" user$")
