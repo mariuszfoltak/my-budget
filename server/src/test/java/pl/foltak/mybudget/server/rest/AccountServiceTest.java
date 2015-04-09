@@ -154,7 +154,7 @@ public class AccountServiceTest {
      */
     @Test
     public void isOkStatusReturnedWhenAccountIsRemoved() {
-        Response response = instance.removeAccount(WALLET);
+        Response response = instance.removeAccount(12L);
         assertEquals("Incorrect status code", 200, response.getStatus());
     }
 
@@ -168,8 +168,8 @@ public class AccountServiceTest {
     public void isEntityRemovedWhenAccountIsRemoved() 
             throws AccountNotFoundException, AccountCantBeRemovedException {
         
-        instance.removeAccount(WALLET);
-        verify(dao).removeAccount(USERNAME, WALLET);
+        instance.removeAccount(12L);
+        verify(dao).removeAccount(USERNAME, 12L);
     }
 
     /**
@@ -183,9 +183,9 @@ public class AccountServiceTest {
             throws AccountNotFoundException, AccountCantBeRemovedException {
         
         doThrow(AccountNotFoundException.class).when(dao)
-                .removeAccount(USERNAME, NONEXISTENT);
+                .removeAccount(USERNAME, 13L);
         
-        instance.removeAccount(NONEXISTENT);
+        instance.removeAccount(13L);
     }
 
     /**
@@ -200,9 +200,9 @@ public class AccountServiceTest {
             throws AccountNotFoundException, AccountCantBeRemovedException {
         
         doThrow(AccountCantBeRemovedException.class).when(dao)
-                .removeAccount(USERNAME, WALLET);
+                .removeAccount(USERNAME, 12L);
         
-        instance.removeAccount(WALLET);
+        instance.removeAccount(12L);
     }
 
     /**

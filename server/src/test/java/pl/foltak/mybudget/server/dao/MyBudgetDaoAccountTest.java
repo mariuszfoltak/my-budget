@@ -50,9 +50,12 @@ public class MyBudgetDaoAccountTest {
         when(walletAccount.getName()).thenReturn(WALLET);
         when(bankAccount.getName()).thenReturn(BANK);
 
-        when(user.findAccount(any())).thenReturn(Optional.ofNullable(null));
+        when(user.findAccount(any(String.class))).thenReturn(Optional.ofNullable(null));
+        when(user.findAccount(any(Long.class))).thenReturn(Optional.ofNullable(null));
         when(user.findAccount(WALLET)).thenReturn(Optional.of(walletAccount));
+        when(user.findAccount(11L)).thenReturn(Optional.of(walletAccount));
         when(user.findAccount(BANK)).thenReturn(Optional.of(bankAccount));
+        when(user.findAccount(12L)).thenReturn(Optional.of(bankAccount));
 
         when(walletAccount.hasTransactions()).thenReturn(Boolean.TRUE);
     }
@@ -141,7 +144,7 @@ public class MyBudgetDaoAccountTest {
     public void isEntityDeletedWhenRemovingAccount()
             throws AccountNotFoundException, AccountCantBeRemovedException {
 
-        instance.removeAccount(USERNAME, BANK);
+        instance.removeAccount(USERNAME, 12L);
         verify(user).removeAccount(bankAccount);
     }
 
@@ -156,7 +159,7 @@ public class MyBudgetDaoAccountTest {
     public void isExceptionThrownWhenTryToDeleteAccountThatDoesntExist()
             throws AccountNotFoundException, AccountCantBeRemovedException {
 
-        instance.removeAccount(USERNAME, NONEXISTENT);
+        instance.removeAccount(USERNAME, 13L);
     }
 
     /**
@@ -170,7 +173,7 @@ public class MyBudgetDaoAccountTest {
     public void isExceptionThrownWhenAccountHasTransactions()
             throws AccountNotFoundException, AccountCantBeRemovedException {
 
-        instance.removeAccount(USERNAME, WALLET);
+        instance.removeAccount(USERNAME, 11L);
     }
 
     /**
