@@ -1,14 +1,15 @@
 package pl.foltak.mybudget.rest.e2e.accounts;
 
 import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.parsing.Parser;
 import com.jayway.restassured.response.ValidatableResponse;
 import com.jayway.restassured.specification.RequestSpecification;
-import cucumber.api.PendingException;
 import cucumber.api.java.After;
 import cucumber.api.java.Before;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import static org.hamcrest.Matchers.hasItems;
@@ -21,6 +22,11 @@ public class Stepdefs {
     private final SimpleDao simpleDao = new MySqlSimpleDao();
     private String username;
     private ValidatableResponse response;
+    private List<Account> accounts;
+    
+    static {
+        RestAssured.defaultParser = Parser.JSON;
+    }
 
     @Before @After
     public void clearDatabase() {
@@ -34,8 +40,10 @@ public class Stepdefs {
     }
 
     @Given("^I am \"(.*?)\" user$")
-    public void setUsername(String username) {
+    public void setUsernameAndGetAccounts(String username) {
         this.username = username;
+        Account[] accountsArray = given().when().get("accounts/").as(Account[].class);
+        accounts = Arrays.asList(accountsArray);
     }
 
     @When("^I add \"(.*?)\" account$")
@@ -116,8 +124,13 @@ public class Stepdefs {
 
     @When("^I remove \"(.*?)\" account$")
     public void removeAccount(String accountName) throws Throwable {
+        long accountId = accounts.stream().
+                filter(x->x.name.equals(accountName))
+                .mapToLong(x->x.id)
+                .findFirst().orElse(-404L);
+        
         response = given()
-                .delete("/accounts/{accountName}", accountName)
+                .delete("/accounts/{accountId}", accountId)
                 .then();
     }
 

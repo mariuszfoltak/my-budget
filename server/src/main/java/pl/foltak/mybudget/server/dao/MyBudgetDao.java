@@ -77,17 +77,17 @@ public class MyBudgetDao implements MyBudgetDaoLocal {
      * Removes account from user.
      *
      * @param username the name of user from which an account should be deleted
-     * @param accountName the name of account that should be removed
+     * @param accountId the id of account that should be removed
      * @throws AccountNotFoundException when account with given name doesn't exist
      * @throws AccountCantBeRemovedException when the account has transactions
      */
     @Override
-    public void removeAccount(String username, String accountName) throws AccountNotFoundException,
+    public void removeAccount(String username, Long accountId) throws AccountNotFoundException,
             AccountCantBeRemovedException {
 
         final User user = getUserByName(username);
-        Account account = user.findAccount(accountName)
-                .orElseThrow(() -> AccountNotFoundException.of(accountName));
+        Account account = user.findAccount(accountId)
+                .orElseThrow(() -> AccountNotFoundException.of(accountId));
 
         if (account.hasTransactions()) {
             throw new AccountCantBeRemovedException();

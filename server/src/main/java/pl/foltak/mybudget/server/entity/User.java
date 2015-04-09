@@ -98,6 +98,16 @@ public class User implements Serializable {
     /**
      * Finds an account belongs to the user by the account name and returns it.
      *
+     * @param accountId id of searched account
+     * @return the account wrapped in Optional
+     */
+    public Optional<Account> findAccount(Long accountId) {
+        return accounts.stream().filter(e -> e.getId().equals(accountId)).findFirst();
+    }
+
+    /**
+     * Finds an account belongs to the user by the account name and returns it.
+     *
      * @param accountName name of searched account
      * @return the account wrapped in Optional
      */

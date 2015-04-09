@@ -75,14 +75,14 @@ public class AccountService extends AbstractService {
     /**
      * Removes an account from user accounts.
      *
-     * @param accountName the name of account that should be removed.
+     * @param id the id of account that should be removed.
      * @return 200 OK when the account was removed or 404 Not Found when the account doesn't exist.
      */
     @DELETE
-    @Path("/{account}")
-    public Response removeAccount(@PathParam("account") String accountName) {
+    @Path("/{id}")
+    public Response removeAccount(@PathParam("id") Long id) {
         try {
-            getDao().removeAccount(getUsername(), accountName);
+            getDao().removeAccount(getUsername(), id);
         } catch (AccountNotFoundException ex) {
             throw new NotFoundException(ex.getMessage(), ex);
         } catch (AccountCantBeRemovedException ex) {

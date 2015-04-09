@@ -27,7 +27,7 @@ public interface MyBudgetDaoLocal {
     public void updateAccount(String username, String accountName, Account account)
             throws AccountAlreadyExistsException, AccountNotFoundException;
 
-    public void removeAccount(String username, String accountName)
+    public void removeAccount(String username, Long accountId)
             throws AccountNotFoundException, AccountCantBeRemovedException;
 
     public List<Account> getAccounts(String username);

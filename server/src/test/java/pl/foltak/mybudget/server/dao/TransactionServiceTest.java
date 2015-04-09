@@ -68,7 +68,7 @@ public class TransactionServiceTest {
         doReturn(transaction).when(instance).convertTransaction(transactionDTO);
         doNothing().when(instance).updateTransaction(transaction, transactionDTO);
 
-        when(user.findAccount(any())).thenReturn(Optional.ofNullable(null));
+        when(user.findAccount(any(String.class))).thenReturn(Optional.ofNullable(null));
         when(user.findAccount(WALLET)).thenReturn(Optional.of(account));
         when(user.findCategory(any())).thenReturn(Optional.ofNullable(null));
         when(user.findCategory(FOOD)).thenReturn(Optional.of(mainCategory));

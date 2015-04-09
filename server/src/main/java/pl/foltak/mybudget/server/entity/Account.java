@@ -21,7 +21,8 @@ import lombok.Setter;
 @Entity(name = "accounts")
 public class Account implements Serializable {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) 
+    @Setter @Getter private Long id;
     @Setter @Getter private String name;
     
     @OneToMany @JoinColumn(name = "account_id") List<Transaction> transactions;
