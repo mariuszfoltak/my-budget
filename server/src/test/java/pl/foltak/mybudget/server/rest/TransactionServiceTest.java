@@ -25,7 +25,7 @@ public class TransactionServiceTest {
     private static final String USERNAME = "alibaba";
     private static final String NONEXISTENT = "nonexistent";
 
-    private AccountService instance;
+    private TransactionService instance;
     private TransactionDTO transactionDTO;
 
     private Transaction transaction;
@@ -34,7 +34,7 @@ public class TransactionServiceTest {
     @Before
     public void setUp() {
         dao = mock(MyBudgetDaoLocal.class);
-        instance = spy(new AccountService());
+        instance = spy(new TransactionService());
         transaction = mock(Transaction.class);
         transactionDTO = mock(TransactionDTO.class);
 

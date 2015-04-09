@@ -102,42 +102,4 @@ public class AccountService extends AbstractService {
         final List<Account> accounts = getDao().getAccounts(getUsername());
         return Response.ok(accounts).build();
     }
-
-    @PUT
-    @Path("/{account}")
-    public Response createTransaction(@PathParam("account") String accountName,
-            TransactionDTO transactionDTO) {
-
-        try {
-            getDao().addTransaction(getUsername(), transactionDTO);
-        } catch (AccountNotFoundException | CategoryNotFoundException ex) {
-            throw new NotFoundException(ex.getMessage(), ex);
-        }
-        // TODO: create uriCreator
-        return Response.created(URI.create("transaction/" + transactionDTO.getId())).build();
-    }
-
-    @POST
-    @Path("/{account}")
-    public Response modifyTransaction(@PathParam("account") String accountName,
-            TransactionDTO transactionDTO) {
-
-        try {
-            getDao().updateTransaction(getUsername(), transactionDTO);
-        } catch (AccountNotFoundException | TransactionNotFoundException | CategoryNotFoundException ex) {
-            throw new NotFoundException(ex.getMessage(), ex);
-        }
-        return Response.ok().build();
-    }
-
-    @DELETE
-    @Path("/")
-    public Response removeTransaction(@PathParam("account") String accountName, long transactionId) {
-        try {
-            getDao().removeTransaction(getUsername(), transactionId);
-        } catch (TransactionNotFoundException ex) {
-            throw new NotFoundException(ex.getMessage(), ex);
-        }
-        return Response.ok().build();
-    }
 }
